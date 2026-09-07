@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>प्रदीप बाइक सर्विस - Cloud Billing</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root { --c-primary: #4f46e5; --c-secondary: #7c3aed; --c-success: #16a34a; --c-danger: #dc2626; }
+    .font-devanagari { font-family: 'Noto Sans Devanagari', system-ui, sans-serif; }
+    .font-poppins { font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif; }
+    body { background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 50%, #dbeafe 100%); min-height: 100vh; }
+    .shop-header { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 25%, #7c3aed 60%, #db2777 100%); background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
+    @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .card-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .card-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,.15); }
+    .btn-shine { position: relative; overflow: hidden; }
+    .btn-shine::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent); transition: left .5s ease; }
+    .btn-shine:hover::after { left: 100%; }
+    .input-glow:focus { box-shadow: 0 0 0 4px rgba(99,102,241,.15); }
+    .pulse-amount { animation: pulseGlow 2.5s ease-in-out infinite; }
+    @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 0 rgba(37,99,235,0); } 50% { text-shadow: 0 0 12px rgba(37,99,235,.4); } }
+    .tab-btn { transition: all .2s ease; }
+    .tab-btn.active { background: white; color: var(--c-primary); box-shadow: 0 4px 12px rgba(79,70,229,.2); }
+    .page { display: none; animation: fadeIn .3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card { position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.15); }
+    .modal-enter { animation: modalIn .25s ease-out; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 12px 24px; border-radius: 12px; color: white; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.2); z-index: 100; transition: transform .3s ease, opacity .3s ease; opacity: 0; max-width: 90%; text-align: center; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #059669); }
+    .toast.error { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+    .toast.info { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+    .toast.warning { background: linear-gradient(135deg, #ea580c, #d97706); }
+    .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .conn-pill { position: fixed; top: 4px; right: 4px; z-index: 200; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(8px); }
+    .conn-pill.connected { background: rgba(34,197,94,.9); color: white; }
+    .conn-pill.disconnected { background: rgba(239,68,68,.9); color: white; }
+    .conn-pill.syncing { background: rgba(234,179,8,.9); color: white; }
+    @media print { body * { visibility: hidden; } #previewContent, #previewContent * { visibility: visible; } #previewContent { position: absolute; left: 0; top: 0; width: 100%; } }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="font-devanagari">
+
+<div id="connPill" class="conn-pill disconnected">
+  <span class="dot" style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block;"></span>
+  <span id="connText">Connecting...</span>
+</div>
+
+<!-- HEADER -->
+<div class="shop-header text-white shadow-2xl sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-2 ring-white/30 text-2xl">🏍️</div>
+      <div>
+        <h1 class="text-lg sm:text-xl font-extrabold font-poppins leading-tight">प्रदीप बाइक सर्विस</h1>
+        <p class="text-[10px] sm:text-xs opacity-90 font-poppins">Pradeep Bike Service • Cloud Billing</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="syncBtn" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded font-poppins text-xs font-bold">🔄 Sync</button>
+      <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded font-poppins text-xs font-bold">🚪 Logout</button>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
+    <button class="tab-btn active flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="dashboard">📊 डैशबोर्ड</button>
+    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="bill">🧾 नया बिल</button>
+    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="bills">📋 बिल्स</button>
+    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="contacts">👥 कस्टमर</button>
+    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="khata">💼 खाता बही</button>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto p-3 sm:p-6">
+
+  <!-- ============================ LOGIN ============================ -->
+  <div id="page-login" class="page active">
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mt-6">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-3 text-4xl">🏍️</div>
+        <h1 class="text-2xl font-extrabold font-poppins text-gray-800">प्रदीप बाइक सर्विस</h1>
+        <p class="text-xs text-gray-500 font-poppins">Pradeep Bike Service • Cloud Billing</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm font-semibold text-gray-700 font-poppins">Owner Name</label>
+          <input type="text" id="ownerName" class="w-full mt-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari" placeholder="Pradeep">
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-gray-700 font-poppins">PIN (4 digits)</label>
+          <input type="password" id="ownerPin" maxlength="4" class="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-poppins text-2xl font-bold text-center tracking-widest" placeholder="• • • •">
+        </div>
+        <button id="loginBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg flex items-center justify-center gap-2">
+          <span>🔐</span> Login / Start
+        </button>
+          <button id="testConnBtn" type="button" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl font-poppins text-sm">
+            🔧 Connection Test (pehle click karein agar error aaye)
+          </button>
+          <div id="testResult" class="hidden text-xs font-poppins p-3 rounded"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ DASHBOARD ============================ -->
+  <div id="page-dashboard" class="page">
+    <h2 class="text-2xl font-bold font-poppins text-gray-800 mb-4">📊 डैशबोर्ड</h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div class="stat-card card-lift bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg">
+        <p class="text-xs sm:text-sm opacity-90 font-poppins">कुल बिल</p>
+        <p id="statTotalBills" class="text-2xl sm:text-3xl font-extrabold font-poppins mt-1">0</p>
+        <p class="text-[10px] opacity-75 mt-1">Total Bills</p>
+      </div>
+      <div class="stat-card card-lift bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg">
+        <p class="text-xs sm:text-sm opacity-90 font-poppins">कुल बिक्री</p>
+        <p id="statTotalSales" class="text-2xl sm:text-3xl font-extrabold font-poppins mt-1">₹0</p>
+        <p class="text-[10px] opacity-75 mt-1">Total Sales</p>
+      </div>
+      <div class="stat-card card-lift bg-gradient-to-br from-rose-500 to-pink-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg">
+        <p class="text-xs sm:text-sm opacity-90 font-poppins">उधार / बकाया</p>
+        <p id="statTotalDue" class="text-2xl sm:text-3xl font-extrabold font-poppins mt-1">₹0</p>
+        <p class="text-[10px] opacity-75 mt-1">Pending (Credit)</p>
+      </div>
+      <div class="stat-card card-lift bg-gradient-to-br from-amber-500 to-orange-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg">
+        <p class="text-xs sm:text-sm opacity-90 font-poppins">कस्टमर</p>
+        <p id="statTotalCustomers" class="text-2xl sm:text-3xl font-extrabold font-poppins mt-1">0</p>
+        <p class="text-[10px] opacity-75 mt-1">Customers</p>
+      </div>
+    </div>
+    <h3 class="text-lg font-bold font-poppins text-gray-800 mb-3">⚡ त्वरित कार्य</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <button onclick="switchTab('bill')" class="card-lift bg-white p-4 rounded-2xl shadow text-center"><div class="text-3xl mb-1">🧾</div><p class="font-bold text-gray-800 text-sm font-poppins">नया बिल</p></button>
+      <button onclick="switchTab('bills')" class="card-lift bg-white p-4 rounded-2xl shadow text-center"><div class="text-3xl mb-1">📋</div><p class="font-bold text-gray-800 text-sm font-poppins">बिल्स देखें</p></button>
+      <button onclick="openContactModal()" class="card-lift bg-white p-4 rounded-2xl shadow text-center"><div class="text-3xl mb-1">👤</div><p class="font-bold text-gray-800 text-sm font-poppins">कस्टमर जोड़ें</p></button>
+      <button onclick="openPaymentModal()" class="card-lift bg-white p-4 rounded-2xl shadow text-center"><div class="text-3xl mb-1">💰</div><p class="font-bold text-gray-800 text-sm font-poppins">पेमेंट लें</p></button>
+    </div>
+    <h3 class="text-lg font-bold font-poppins text-gray-800 mb-3">🕒 हाल के बिल</h3>
+    <div id="recentBills" class="space-y-2"><p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं मिला</p></div>
+  </div>
+
+  <!-- ============================ NEW BILL ============================ -->
+  <div id="page-bill" class="page">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800">🧾 नया बिल</h2>
+          <p class="text-xs text-gray-500">Repair Invoice</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-gray-500 font-poppins">बिल नंबर</p>
+          <p id="billNumber" class="text-sm font-bold text-indigo-600 font-poppins">#PBS-0001</p>
+        </div>
+      </div>
+      <div class="p-4 sm:p-6">
+        <div class="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2">
+          <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+            <label class="flex items-center gap-2 text-sm font-semibold text-indigo-700 font-poppins mb-1"><span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">👤</span>ग्राहक का नाम</label>
+            <input type="text" id="customerName" list="customerList" class="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari bg-white" placeholder="ग्राहक चुनें">
+            <datalist id="customerList"></datalist>
+          </div>
+          <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
+            <label class="flex items-center gap-2 text-sm font-semibold text-purple-700 font-poppins mb-1"><span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">🏍️</span>गाड़ी नंबर</label>
+            <input type="text" id="bikeModel" class="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:outline-none focus:border-purple-500 input-glow font-devanagari bg-white" placeholder="HR26BD1234">
+          </div>
+          <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+            <label class="flex items-center gap-2 text-sm font-semibold text-emerald-700 font-poppins mb-1"><span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📅</span>तारीख</label>
+            <input type="date" id="date" class="w-full px-3 py-2 border-2 border-emerald-200 rounded-lg focus:outline-none focus:border-emerald-500 input-glow font-devanagari bg-white">
+          </div>
+          <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100">
+            <label class="flex items-center gap-2 text-sm font-semibold text-orange-700 font-poppins mb-1"><span class="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center text-xs">📱</span>मोबाइल</label>
+            <input type="tel" id="customerMobile" class="w-full px-3 py-2 border-2 border-orange-200 rounded-lg focus:outline-none focus:border-orange-500 input-glow font-devanagari bg-white" placeholder="9876543210">
+          </div>
+        </div>
+
+        <div class="mb-4 p-3 rounded-xl bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200">
+          <label class="block text-sm font-semibold text-gray-700 font-poppins mb-2">💳 भुगतान स्थिति</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-emerald-200 rounded-lg cursor-pointer hover:border-emerald-400 has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500">
+              <input type="radio" name="paymentStatus" value="paid" checked class="accent-emerald-600"> <span class="text-sm font-semibold text-emerald-700">✅ भुगतान</span>
+            </label>
+            <label class="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-rose-200 rounded-lg cursor-pointer hover:border-rose-400 has-[:checked]:bg-rose-50 has-[:checked]:border-rose-500">
+              <input type="radio" name="paymentStatus" value="credit" class="accent-rose-600"> <span class="text-sm font-semibold text-rose-700">⏳ उधार</span>
+            </label>
+            <label class="flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-blue-200 rounded-lg cursor-pointer hover:border-blue-400 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500">
+              <input type="radio" name="paymentStatus" value="partial" class="accent-blue-600"> <span class="text-sm font-semibold text-blue-700">🔶 आंशिक</span>
+            </label>
+          </div>
+          <div id="partialPayBox" class="hidden mt-2">
+            <input type="number" id="partialAmount" class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 input-glow font-poppins" placeholder="अभी दी राशि (₹)" min="0">
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-gray-800 font-poppins flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center">🔩</span>मरम्मत आइटम्स</h3>
+            <span id="itemCount" class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-poppins">0 आइटम</span>
+          </div>
+          <div class="overflow-x-auto rounded-xl border-2 border-indigo-100 shadow-sm">
+            <table class="min-w-full bg-white">
+              <thead style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);" class="text-white">
+                <tr>
+                  <th class="px-3 py-3 text-left text-xs font-bold font-poppins uppercase">विवरण</th>
+                  <th class="px-3 py-3 text-center text-xs font-bold font-poppins uppercase w-20">मात्रा</th>
+                  <th class="px-3 py-3 text-center text-xs font-bold font-poppins uppercase w-24">दर (₹)</th>
+                  <th class="px-3 py-3 text-right text-xs font-bold font-poppins uppercase w-28">कुल (₹)</th>
+                  <th class="px-3 py-3 text-center text-xs font-bold font-poppins uppercase w-20">एक्शन</th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+          <button id="addRowBtn" class="btn-shine mt-3 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white font-bold py-3 px-4 rounded-xl font-poppins shadow-lg">＋ नई पंक्ति</button>
+        </div>
+
+        <div class="rounded-2xl overflow-hidden border-2 border-indigo-100 shadow-md mb-6">
+          <div class="px-5 py-3 text-white font-poppins font-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">💰 बिल सारांश</div>
+          <div class="p-5 bg-gradient-to-br from-indigo-50 via-white to-purple-50 space-y-3">
+            <div class="flex justify-between items-center py-2 border-b border-gray-200"><span class="text-gray-700 font-poppins font-semibold">कुल राशि</span><span id="totalAmount" class="text-xl font-bold text-gray-800 font-poppins">₹0.00</span></div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-200"><span class="text-gray-700 font-poppins font-semibold">छूट (%)</span><input type="number" id="discount" class="w-24 px-2 py-1 border-2 border-orange-200 rounded-lg text-right focus:outline-none focus:border-orange-500 input-glow font-poppins font-bold text-orange-600 bg-white" value="0" min="0" max="100"></div>
+            <div class="flex justify-between items-center py-3 px-4 rounded-xl text-white font-poppins" style="background: linear-gradient(135deg, #16a34a 0%, #059669 100%);"><span class="font-bold flex items-center gap-2"><span class="text-xl">✅</span> देय राशि</span><span id="finalAmount" class="text-2xl font-extrabold pulse-amount">₹0.00</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button id="saveBillBtn" class="btn-shine bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">💾 सेव</button>
+          <button id="previewBtn" class="btn-shine bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">👁️ प्रीव्यू</button>
+          <button id="pdfBtn" class="btn-shine bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">📄 PDF</button>
+          <button id="whatsappBtn" class="btn-shine bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">💬 WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ BILLS LIST ============================ -->
+  <div id="page-bills" class="page">
+    <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800">📋 बिल्स लिस्ट</h2>
+        <div class="flex gap-2">
+          <input type="text" id="billSearch" placeholder="🔍 खोजें..." class="px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 input-glow font-poppins text-sm w-40 sm:w-64">
+          <button id="exportBtn" class="bg-emerald-100 hover:bg-emerald-500 text-emerald-700 hover:text-white px-3 py-2 rounded-lg font-poppins text-sm font-bold">📥</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-4 text-xs">
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 font-bold font-poppins" data-filter="all">सभी</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-bold font-poppins" data-filter="paid">✅ भुगतान</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 font-bold font-poppins" data-filter="credit">⏳ उधार</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 font-bold font-poppins" data-filter="partial">🔶 आंशिक</button>
+      </div>
+      <div id="billsList" class="space-y-2"><p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं</p></div>
+    </div>
+  </div>
+
+  <!-- ============================ CONTACTS ============================ -->
+  <div id="page-contacts" class="page">
+    <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800">👥 कस्टमर</h2>
+        <button onclick="openContactModal()" class="btn-shine bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-2 px-4 rounded-xl font-poppins text-sm shadow-lg">＋ नया</button>
+      </div>
+      <input type="text" id="contactSearch" placeholder="🔍 खोजें..." class="w-full mb-4 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 input-glow font-poppins text-sm">
+      <div id="contactsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"><p class="text-gray-500 text-sm text-center py-6 col-span-full">कोई कस्टमर नहीं</p></div>
+    </div>
+  </div>
+
+  <!-- ============================ KHATA ============================ -->
+  <div id="page-khata" class="page">
+    <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
+      <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 mb-4">💼 खाता बही</h2>
+      <div id="khataList" class="space-y-3"><p class="text-gray-500 text-sm text-center py-6">कोई ग्राहक नहीं</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div id="previewModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto modal-enter">
+    <div class="flex justify-between items-center mb-4 pb-3 border-b"><h2 class="text-lg font-bold font-poppins">🧾 बिल प्रीव्यू</h2><button id="closeModalBtn" class="text-gray-400 hover:text-red-500 text-3xl">&times;</button></div>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
+<div id="contactModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 modal-enter">
+    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold font-poppins">👤 कस्टमर</h2><button id="closeContactModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <input type="text" id="newContactName" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari" placeholder="नाम *">
+      <input type="tel" id="newContactMobile" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-poppins" placeholder="मोबाइल">
+      <input type="text" id="newContactBike" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-poppins" placeholder="गाड़ी नंबर">
+      <input type="text" id="newContactAddress" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari" placeholder="पता">
+      <button id="saveContactBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">💾 सेव</button>
+    </div>
+  </div>
+</div>
+
+<div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 modal-enter">
+    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold font-poppins">💰 पेमेंट</h2><button id="closePaymentModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <select id="paymentCustomer" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari"></select>
+      <input type="number" id="paymentAmount" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-poppins font-bold text-lg" placeholder="₹ राशि *" min="0">
+      <input type="text" id="paymentNote" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari" placeholder="नोट">
+      <div id="paymentCustomerDue" class="text-sm font-semibold text-rose-600 font-poppins"></div>
+      <button id="savePaymentBtn" class="btn-shine w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">✅ सेव</button>
+    </div>
+  </div>
+</div>
+
+<div id="billDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto modal-enter">
+    <div class="flex justify-between items-center mb-4 pb-3 border-b"><h2 class="text-lg font-bold font-poppins">📄 बिल विवरण</h2><button id="closeBillDetailModal" class="text-gray-400 hover:text-red-500 text-3xl">&times;</button></div>
+    <div id="billDetailContent"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+/* =========================================================
+   SUPABASE CONFIG (DIRECT)
+   ========================================================= */
+const SUPABASE_URL = 'https://oyjvbuqcylwdiahkvhfs.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95anZidXFjeWx3ZGlhaGt2aGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3ODYzMTksImV4cCI6MjEwNDM2MjMxOX0.SRXsLn9uuT0sWX_d_HjLRAbpTX-JqLcAorgJLdjgg2U';
+
+let supabaseClient = null;
+let BILLS = [], CONTACTS = [], TRANSACTIONS = [];
+
+const AUTH = {
+  get pin() { return localStorage.getItem('pbs_pin'); },
+  set pin(v) { localStorage.setItem('pbs_pin', v); },
+  get name() { return localStorage.getItem('pbs_name'); },
+  set name(v) { localStorage.setItem('pbs_name', v); },
+  clear() { localStorage.removeItem('pbs_pin'); localStorage.removeItem('pbs_name'); }
+};
+
+function setConnStatus(state, text) {
+  const el = document.getElementById('connPill');
+  el.className = 'conn-pill ' + state;
+  document.getElementById('connText').textContent = text;
+}
+
+function initSupabase() {
+  try {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      throw new Error('Supabase library load nahi hui. Check internet connection.');
+    }
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return true;
+  } catch (e) {
+    console.error('Supabase init error:', e);
+    return false;
+  }
+}
+
+/* =========================================================
+   UTILS
+   ========================================================= */
+function escapeHTML(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function todayISO() { return new Date().toISOString().split('T')[0]; }
+function formatDate(iso) { if (!iso) return '—'; try { return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return iso; } }
+function uid() { return 'PBS-' + Date.now().toString().slice(-6); }
+function showToast(msg, type = 'success', duration = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; setTimeout(() => t.classList.remove('show'), duration); }
+
+function mapBill(row) {
+  return { id: row.bill_number, dbId: row.id, contactId: row.contact_id, customerName: row.customer_name, customerMobile: row.customer_mobile, bikeModel: row.bike_model, date: row.date, items: row.items || [], totalAmount: row.total_amount, discountPercent: row.discount_percent, finalAmount: row.final_amount, paymentStatus: row.payment_status, paidAmount: row.paid_amount };
+}
+
+function getContactBalance(contactId) {
+  let owed = 0;
+  BILLS.filter(b => b.contactId === contactId).forEach(b => {
+    if (b.paymentStatus === 'credit') owed += b.finalAmount;
+    else if (b.paymentStatus === 'partial') owed += (b.finalAmount - (b.paidAmount || 0));
+  });
+  TRANSACTIONS.filter(t => t.contactId === contactId).forEach(t => { if (t.type === 'payment') owed -= t.amount; });
+  return owed;
+}
+
+/* =========================================================
+   LOGIN (Simplified - No validation drama)
+   ========================================================= */
+document.getElementById('ownerPin').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  console.log('🔵 Login button clicked');
+
+  const name = document.getElementById('ownerName').value.trim() || 'Owner';
+  const pin = document.getElementById('ownerPin').value.trim() || '0000';
+
+  console.log('Name:', name, 'PIN length:', pin.length);
+
+  const btn = document.getElementById('loginBtn');
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span class="loading-spinner"></span> Connecting...';
+  btn.disabled = true;
+
+  try {
+    if (!supabaseClient) {
+      console.log('Initializing Supabase...');
+      initSupabase();
+    }
+    if (!supabaseClient) throw new Error('Supabase init failed');
+
+    console.log('Testing connection...');
+    const { data, error } = await supabaseClient.from('contacts').select('id').limit(1);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      if (error.code === '42P01') {
+        throw new Error('❌ Tables nahi bani! Pehle supabase_schema.sql Supabase SQL Editor mein run karein.');
+      }
+      throw new Error('DB Error: ' + error.message);
+    }
+
+    console.log('✅ Connection OK, data:', data);
+
+    // Save credentials (no strict check)
+    AUTH.pin = pin;
+    AUTH.name = name;
+
+    showToast('🎉 Welcome ' + name + '!', 'success');
+    enterApp();
+  } catch (e) {
+    console.error('❌ Login error:', e);
+    showToast('❌ ' + e.message, 'error', 5000);
+    const testEl = document.getElementById('testResult');
+    testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+    testEl.textContent = '❌ Error: ' + e.message + '\n\nCheck karein:\n1. supabase_schema.sql run hua?\n2. Internet connection hai?\n3. Console (F12) mein errors dekhein';
+    testEl.classList.remove('hidden');
+  }
+  btn.innerHTML = origText;
+  btn.disabled = false;
+});
+
+// Test connection button
+document.getElementById('testConnBtn').addEventListener('click', async () => {
+  const testEl = document.getElementById('testResult');
+  testEl.className = 'text-xs font-poppins p-3 rounded bg-blue-50 text-blue-700 border border-blue-200';
+  testEl.textContent = '⏳ Testing...';
+  testEl.classList.remove('hidden');
+
+  try {
+    if (!supabaseClient) initSupabase();
+    console.log('Supabase client:', supabaseClient);
+
+    const { data, error } = await supabaseClient.from('contacts').select('id').limit(1);
+    if (error) {
+      if (error.code === '42P01') {
+        testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+        testEl.textContent = '❌ Tables nahi bani! Pehle supabase_schema.sql Supabase SQL Editor mein run karein.';
+      } else {
+        testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+        testEl.textContent = '❌ Error: ' + error.message + ' (code: ' + error.code + ')';
+      }
+    } else {
+      testEl.className = 'text-xs font-poppins p-3 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
+      testEl.textContent = '✅ Connection OK! Database se connect ho gaye. Login button click karein.';
+    }
+  } catch (e) {
+    testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+    testEl.textContent = '❌ ' + e.message;
+  }
+});
+
+function logout() {
+  if (!confirm('Logout?')) return;
+  AUTH.clear();
+  BILLS = []; CONTACTS = []; TRANSACTIONS = [];
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-login').classList.add('active');
+  document.getElementById('ownerName').value = '';
+  document.getElementById('ownerPin').value = '';
+  setConnStatus('disconnected', 'Logged out');
+}
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+/* =========================================================
+   ENTER APP
+   ========================================================= */
+function enterApp() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-dashboard').classList.add('active');
+  loadAll();
+}
+
+/* =========================================================
+   LOAD DATA
+   ========================================================= */
+async function loadAll() {
+  setConnStatus('syncing', 'Syncing...');
+  try {
+    const [b, c, t] = await Promise.all([
+      supabaseClient.from('bills').select('*').order('created_at', { ascending: false }),
+      supabaseClient.from('contacts').select('*').order('name'),
+      supabaseClient.from('transactions').select('*').order('date', { ascending: false })
+    ]);
+    if (b.error) throw b.error;
+    if (c.error) throw c.error;
+    if (t.error) throw t.error;
+    BILLS = (b.data || []).map(mapBill);
+    CONTACTS = c.data || [];
+    TRANSACTIONS = t.data || [];
+    setConnStatus('connected', '☁️ Cloud Connected');
+    showToast('☁️ Data loaded: ' + BILLS.length + ' bills, ' + CONTACTS.length + ' customers', 'success');
+    renderAll();
+  } catch (e) {
+    console.error(e);
+    setConnStatus('disconnected', 'Load failed');
+    showToast('❌ ' + e.message, 'error', 4000);
+  }
+}
+
+document.getElementById('syncBtn').addEventListener('click', loadAll);
+
+/* =========================================================
+   TAB SWITCH
+   ========================================================= */
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.page').forEach(p => { if (p.id !== 'page-login') p.classList.toggle('active', p.id === 'page-' + name); });
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'bills') renderBillsList();
+  if (name === 'contacts') renderContacts();
+  if (name === 'khata') renderKhata();
+}
+window.switchTab = switchTab;
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+/* =========================================================
+   BILL FORM
+   ========================================================= */
+const itemsBody = document.getElementById('itemsBody');
+const addRowBtn = document.getElementById('addRowBtn');
+const discountInput = document.getElementById('discount');
+const totalAmountEl = document.getElementById('totalAmount');
+const finalAmountEl = document.getElementById('finalAmount');
+const itemCountEl = document.getElementById('itemCount');
+const billNumberEl = document.getElementById('billNumber');
+
+let currentBillNumber = uid();
+billNumberEl.textContent = '#' + currentBillNumber;
+document.getElementById('date').value = todayISO();
+
+function addItemRow(item) {
+  const s = item || { description: '', quantity: 1, rate: 0 };
+  const row = document.createElement('tr');
+  row.innerHTML = `<td class="px-3 py-2"><input type="text" class="w-full px-2 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 input-glow font-devanagari text-sm" value="${escapeHTML(s.description)}" placeholder="विवरण"></td><td class="px-2 py-2"><input type="number" class="w-full px-1 py-1.5 border-2 border-gray-200 rounded-lg text-center focus:outline-none focus:border-indigo-400 input-glow font-poppins font-semibold text-sm qty-input" value="${s.quantity}" min="0"></td><td class="px-2 py-2"><input type="number" class="w-full px-1 py-1.5 border-2 border-gray-200 rounded-lg text-right focus:outline-none focus:border-indigo-400 input-glow font-poppins font-semibold text-sm rate-input" value="${s.rate}" min="0"></td><td class="px-3 py-2 text-right font-poppins font-bold text-gray-800 row-total">0.00</td><td class="px-2 py-2 text-center"><button class="removeRowBtn bg-red-100 hover:bg-red-500 text-red-600 hover:text-white font-bold py-1.5 px-2.5 rounded-lg text-xs">🗑</button></td>`;
+  itemsBody.appendChild(row);
+  row.querySelectorAll('input').forEach(i => { const h = () => { calculateRowTotal(row); calculateSummary(); }; i.addEventListener('input', h); i.addEventListener('change', h); });
+  row.querySelector('.removeRowBtn').addEventListener('click', () => { row.remove(); calculateSummary(); });
+  calculateRowTotal(row);
+}
+function calculateRowTotal(row) { const q = parseFloat(row.querySelector('.qty-input').value) || 0; const r = parseFloat(row.querySelector('.rate-input').value) || 0; row.querySelector('.row-total').textContent = (q * r).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function calculateSummary() {
+  let total = 0;
+  itemsBody.querySelectorAll('tr').forEach(row => { total += parseFloat(row.querySelector('.row-total').textContent.replace(/[^\d.-]/g, '')) || 0; });
+  totalAmountEl.textContent = inr(total);
+  const dp = parseFloat(discountInput.value) || 0;
+  finalAmountEl.textContent = inr(total - (total * dp / 100));
+  itemCountEl.textContent = itemsBody.querySelectorAll('tr').length + ' आइटम';
+}
+discountInput.addEventListener('input', calculateSummary);
+addRowBtn.addEventListener('click', () => addItemRow());
+addItemRow({ description: 'इंजन ऑयल', quantity: 1, rate: 350 });
+addItemRow({ description: 'लेबर चार्ज', quantity: 1, rate: 500 });
+calculateSummary();
+
+document.querySelectorAll('input[name="paymentStatus"]').forEach(r => r.addEventListener('change', () => document.getElementById('partialPayBox').classList.toggle('hidden', r.value !== 'partial')));
+
+document.getElementById('saveBillBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveBillBtn');
+  const name = document.getElementById('customerName').value.trim();
+  if (!name) { showToast('ग्राहक का नाम भरें!', 'error'); return; }
+  const rows = itemsBody.querySelectorAll('tr');
+  if (rows.length === 0) { showToast('आइटम जोड़ें!', 'error'); return; }
+
+  btn.innerHTML = '<span class="loading-spinner"></span>'; btn.disabled = true;
+  try {
+    const items = []; let total = 0;
+    rows.forEach(r => {
+      const ins = r.querySelectorAll('input');
+      const desc = ins[0].value.trim(); const qty = parseFloat(ins[1].value) || 0; const rate = parseFloat(ins[2].value) || 0;
+      if (desc) { items.push({ description: desc, quantity: qty, rate, total: qty * rate }); total += qty * rate; }
+    });
+    if (!items.length) { showToast('विवरण भरें!', 'error'); btn.innerHTML = '💾 सेव'; btn.disabled = false; return; }
+    const dp = parseFloat(discountInput.value) || 0;
+    const final = total - (total * dp / 100);
+    const status = document.querySelector('input[name="paymentStatus"]:checked').value;
+    const paid = status === 'paid' ? final : (status === 'partial' ? (parseFloat(document.getElementById('partialAmount').value) || 0) : 0);
+    const mobile = document.getElementById('customerMobile').value.trim();
+    const bike = document.getElementById('bikeModel').value.trim();
+
+    let contact = CONTACTS.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (!contact) {
+      const newC = { id: 'c' + Date.now(), name, mobile, bike, address: '' };
+      const { data: created, error } = await supabaseClient.from('contacts').insert(newC).select().single();
+      if (error) throw error;
+      contact = created;
+      CONTACTS.push(contact);
+    } else if ((mobile && !contact.mobile) || (bike && !contact.bike)) {
+      if (mobile) contact.mobile = mobile;
+      if (bike) contact.bike = bike;
+      await supabaseClient.from('contacts').update({ mobile: contact.mobile, bike: contact.bike }).eq('id', contact.id);
+    }
+
+    const billPayload = { id: currentBillNumber, bill_number: currentBillNumber, contact_id: contact.id, customer_name: name, customer_mobile: mobile, bike_model: bike, date: document.getElementById('date').value, items, total_amount: total, discount_percent: dp, final_amount: final, payment_status: status, paid_amount: paid };
+    const { data: saved, error } = await supabaseClient.from('bills').insert(billPayload).select().single();
+    if (error) throw error;
+    BILLS.unshift(mapBill(saved));
+
+    document.getElementById('customerName').value = ''; document.getElementById('customerMobile').value = ''; document.getElementById('bikeModel').value = '';
+    discountInput.value = 0; itemsBody.innerHTML = ''; addItemRow({ description: '', quantity: 1, rate: 0 }); calculateSummary();
+    currentBillNumber = uid(); billNumberEl.textContent = '#' + currentBillNumber;
+    showToast('✅ बिल cloud pe save हो गया!');
+    renderAll();
+  } catch (e) { showToast('❌ ' + e.message, 'error', 4000); }
+  finally { btn.innerHTML = '💾 सेव'; btn.disabled = false; }
+});
+
+/* =========================================================
+   INVOICE HTML
+   ========================================================= */
+function buildInvoiceHTML(bill) {
+  let rowsHTML = ''; let idx = 1;
+  bill.items.forEach(it => {
+    const bg = idx % 2 === 0 ? '#f9fafb' : '#ffffff';
+    rowsHTML += `<tr style="background:${bg};"><td style="border:1px solid #e5e7eb;padding:10px;text-align:center;font-family:Poppins;">${idx++}</td><td style="border:1px solid #e5e7eb;padding:10px;">${escapeHTML(it.description)}</td><td style="border:1px solid #e5e7eb;padding:10px;text-align:center;font-family:Poppins;">${it.quantity}</td><td style="border:1px solid #e5e7eb;padding:10px;text-align:right;font-family:Poppins;">${inr(it.rate)}</td><td style="border:1px solid #e5e7eb;padding:10px;text-align:right;font-weight:600;font-family:Poppins;">${inr(it.total)}</td></tr>`;
+  });
+  const dp = bill.discountPercent || 0; const fa = bill.finalAmount; const da = bill.totalAmount * dp / 100;
+  const st = bill.paymentStatus === 'paid' ? '✅ भुगतान हो गया' : bill.paymentStatus === 'credit' ? '⏳ उधार' : '🔶 आंशिक';
+  const sc = bill.paymentStatus === 'paid' ? '#16a34a' : bill.paymentStatus === 'credit' ? '#dc2626' : '#2563eb';
+  return `<div style="padding:24px;color:#111;font-family:'Noto Sans Devanagari',Arial,sans-serif;"><div style="background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 100%);color:white;padding:20px;border-radius:12px;text-align:center;margin-bottom:16px;"><div style="font-size:36px;margin-bottom:4px;">🏍️</div><h1 style="margin:0;font-size:24px;font-family:Poppins;">प्रदीप बाइक सर्विस</h1><p style="margin:4px 0 0 0;font-size:13px;opacity:.9;font-family:Poppins;">Pradeep Bike Service</p><p style="margin:6px 0 0 0;font-size:11px;opacity:.85;font-family:Poppins;">📞 +91 9876543210 • ✉️ pradeepbikeservice@gmail.com</p></div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px dashed #d1d5db;"><h2 style="margin:0;font-size:18px;color:#1e3a8a;font-family:Poppins;">🧾 मरम्मत बिल</h2><div style="text-align:right;"><p style="margin:0;font-size:11px;color:#6b7280;font-family:Poppins;">बिल नंबर</p><p style="margin:0;font-weight:700;color:#4f46e5;font-family:Poppins;">${bill.id}</p></div></div><table style="width:100%;margin-bottom:16px;font-size:13px;"><tr><td style="padding:5px 0;width:35%;"><b style="color:#4f46e5;">👤 ग्राहक:</b></td><td>${escapeHTML(bill.customerName)}</td></tr><tr><td style="padding:5px 0;"><b style="color:#4f46e5;">🏍️ गाड़ी:</b></td><td>${escapeHTML(bill.bikeModel || '—')}</td></tr><tr><td style="padding:5px 0;"><b style="color:#4f46e5;">📱 मोबाइल:</b></td><td>${escapeHTML(bill.customerMobile || '—')}</td></tr><tr><td style="padding:5px 0;"><b style="color:#4f46e5;">📅 तारीख:</b></td><td>${formatDate(bill.date)}</td></tr><tr><td style="padding:5px 0;"><b style="color:${sc};">${st}:</b></td><td style="color:${sc};font-weight:700;">${bill.paymentStatus === 'partial' ? inr(bill.paidAmount) + ' दिए / ' + inr(fa - bill.paidAmount) + ' बकाया' : (bill.paymentStatus === 'paid' ? inr(fa) : inr(fa) + ' देय')}</td></tr></table><table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px;"><thead><tr style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;"><th style="padding:10px;border:1px solid #e5e7eb;width:40px;">#</th><th style="padding:10px;border:1px solid #e5e7eb;text-align:left;">विवरण</th><th style="padding:10px;border:1px solid #e5e7eb;width:60px;">मात्रा</th><th style="padding:10px;border:1px solid #e5e7eb;width:80px;">दर</th><th style="padding:10px;border:1px solid #e5e7eb;width:90px;">कुल</th></tr></thead><tbody>${rowsHTML || '<tr><td colspan="5" style="text-align:center;padding:14px;color:#9ca3af;">कोई आइटम नहीं</td></tr>'}</tbody></table><div style="background:linear-gradient(135deg,#eef2ff,#faf5ff);padding:14px;border-radius:10px;"><table style="width:100%;font-size:13px;"><tr><td style="padding:4px 0;">कुल:</td><td style="padding:4px 0;text-align:right;font-weight:600;font-family:Poppins;">${inr(bill.totalAmount)}</td></tr><tr><td style="padding:4px 0;">छूट (${dp}%):</td><td style="padding:4px 0;text-align:right;font-weight:600;color:#ea580c;font-family:Poppins;">− ${inr(da)}</td></tr></table><div style="background:linear-gradient(135deg,#16a34a,#059669);color:white;padding:12px 14px;border-radius:8px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;">✅ देय राशि</span><span style="font-size:20px;font-weight:800;font-family:Poppins;">${inr(fa)}</span></div></div><p style="text-align:center;margin-top:20px;color:#4f46e5;font-weight:700;">धन्यवाद! 🙏</p></div>`;
+}
+
+function currentDraft() {
+  const rows = itemsBody.querySelectorAll('tr');
+  const items = []; let total = 0;
+  rows.forEach(r => { const ins = r.querySelectorAll('input'); const desc = ins[0].value.trim(); const qty = parseFloat(ins[1].value) || 0; const rate = parseFloat(ins[2].value) || 0; if (desc) { items.push({ description: desc, quantity: qty, rate, total: qty * rate }); total += qty * rate; } });
+  const dp = parseFloat(discountInput.value) || 0;
+  return { id: currentBillNumber, customerName: document.getElementById('customerName').value || '—', customerMobile: document.getElementById('customerMobile').value || '', bikeModel: document.getElementById('bikeModel').value || '', date: document.getElementById('date').value, items, totalAmount: total, discountPercent: dp, finalAmount: total - total * dp / 100, paymentStatus: document.querySelector('input[name="paymentStatus"]:checked').value, paidAmount: parseFloat(document.getElementById('partialAmount').value) || 0 };
+}
+
+const previewModal = document.getElementById('previewModal');
+const previewContent = document.getElementById('previewContent');
+document.getElementById('previewBtn').addEventListener('click', () => { previewContent.innerHTML = buildInvoiceHTML(currentDraft()); previewModal.classList.remove('hidden'); previewModal.classList.add('flex'); });
+function closePreview() { previewModal.classList.add('hidden'); previewModal.classList.remove('flex'); }
+document.getElementById('closeModalBtn').addEventListener('click', closePreview);
+previewModal.addEventListener('click', e => { if (e.target === previewModal) closePreview(); });
+document.getElementById('pdfBtn').addEventListener('click', () => { previewContent.innerHTML = buildInvoiceHTML(currentDraft()); html2pdf().set({ margin: 8, filename: currentBillNumber + '.pdf', html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(previewContent).save(); });
+document.getElementById('whatsappBtn').addEventListener('click', () => {
+  const b = currentDraft();
+  let lines = []; b.items.forEach((it, i) => lines.push(`${i+1}. ${it.description} — ${it.quantity} × ${inr(it.rate)} = ${inr(it.total)}`));
+  const text = `🏍️ *प्रदीप बाइक सर्विस*\n🧾 *बिल:* ${b.id}\n👤 *ग्राहक:* ${b.customerName}\n━━━━━━━━━━━━━━━\n*✅ देय राशि: ${inr(b.finalAmount)}*\n` + (b.paymentStatus === 'credit' ? `⏳ *बकाया: ${inr(b.finalAmount)}*` : '') + `\n🙏 धन्यवाद!`;
+  window.open(`https://wa.me/${(b.customerMobile || '').replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+});
+
+/* =========================================================
+   DASHBOARD / LIST / CONTACTS / KHATA
+   ========================================================= */
+function renderDashboard() {
+  document.getElementById('statTotalBills').textContent = BILLS.length;
+  document.getElementById('statTotalCustomers').textContent = CONTACTS.length;
+  document.getElementById('statTotalSales').textContent = inr(BILLS.reduce((s, b) => s + b.finalAmount, 0));
+  const due = BILLS.reduce((s, b) => b.paymentStatus === 'credit' ? s + b.finalAmount : b.paymentStatus === 'partial' ? s + (b.finalAmount - b.paidAmount) : s, 0) - TRANSACTIONS.filter(t => t.type === 'payment').reduce((s, t) => s + t.amount, 0);
+  document.getElementById('statTotalDue').textContent = inr(Math.max(0, due));
+  const recent = BILLS.slice(0, 5);
+  document.getElementById('recentBills').innerHTML = recent.length ? recent.map(b => billCardHTML(b)).join('') : '<p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं</p>';
+  bindBillCardActions();
+}
+
+let currentFilter = 'all';
+document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('ring-2', 'ring-indigo-400')); btn.classList.add('ring-2', 'ring-indigo-400'); currentFilter = btn.dataset.filter; renderBillsList(); }));
+function renderBillsList() {
+  const q = (document.getElementById('billSearch').value || '').toLowerCase();
+  let list = [...BILLS];
+  if (currentFilter !== 'all') list = list.filter(b => b.paymentStatus === currentFilter);
+  if (q) list = list.filter(b => (b.customerName || '').toLowerCase().includes(q) || (b.id || '').toLowerCase().includes(q));
+  document.getElementById('billsList').innerHTML = list.length ? list.map(b => billCardHTML(b, true)).join('') : '<p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं</p>';
+  bindBillCardActions();
+}
+document.getElementById('billSearch').addEventListener('input', renderBillsList);
+
+function billCardHTML(b, showDelete = false) {
+  const sb = b.paymentStatus === 'paid' ? '<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full font-poppins">✅ भुगतान</span>' : b.paymentStatus === 'credit' ? '<span class="bg-rose-100 text-rose-700 text-xs font-bold px-2 py-1 rounded-full font-poppins">⏳ उधार</span>' : '<span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full font-poppins">🔶 आंशिक</span>';
+  const due = b.paymentStatus === 'credit' ? b.finalAmount : b.paymentStatus === 'partial' ? b.finalAmount - b.paidAmount : 0;
+  return `<div class="card-lift p-3 sm:p-4 bg-white border-2 border-gray-100 rounded-xl shadow-sm"><div class="flex flex-wrap items-start justify-between gap-2"><div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><p class="font-bold text-gray-800 font-poppins">${escapeHTML(b.customerName)}</p>${sb}</div><p class="text-xs text-gray-500 font-poppins mt-0.5">${b.id} • ${formatDate(b.date)}</p><p class="text-xs text-gray-600 mt-1">🏍️ ${escapeHTML(b.bikeModel || '—')}</p></div><div class="text-right"><p class="text-lg font-extrabold text-indigo-600 font-poppins">${inr(b.finalAmount)}</p>${due > 0 ? `<p class="text-xs text-rose-600 font-bold font-poppins">बकाया: ${inr(due)}</p>` : ''}<div class="flex gap-1 mt-2 justify-end"><button class="view-bill text-xs bg-indigo-100 hover:bg-indigo-500 text-indigo-700 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.id}">👁️</button><button class="share-bill text-xs bg-emerald-100 hover:bg-emerald-500 text-emerald-700 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.id}">💬</button>${showDelete ? `<button class="del-bill text-xs bg-rose-100 hover:bg-rose-500 text-rose-700 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.dbId}">🗑</button>` : ''}</div></div></div></div>`;
+}
+
+function bindBillCardActions() {
+  document.querySelectorAll('.view-bill').forEach(b => b.addEventListener('click', e => { const bill = BILLS.find(x => x.id === e.target.dataset.id); if (!bill) return; document.getElementById('billDetailContent').innerHTML = buildInvoiceHTML(bill); document.getElementById('billDetailModal').classList.remove('hidden'); document.getElementById('billDetailModal').classList.add('flex'); }));
+  document.querySelectorAll('.share-bill').forEach(b => b.addEventListener('click', e => { const bill = BILLS.find(x => x.id === e.target.dataset.id); if (!bill) return; const text = `🏍️ *प्रदीप बाइक सर्विस*\n🧾 *बिल:* ${bill.id}\n👤 *ग्राहक:* ${bill.customerName}\n*✅ देय राशि: ${inr(bill.finalAmount)}*` + (bill.paymentStatus === 'credit' ? `\n⏳ *बकाया: ${inr(bill.finalAmount)}*` : '') + `\n🙏 धन्यवाद!`; window.open(`https://wa.me/${(bill.customerMobile || '').replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank'); }));
+  document.querySelectorAll('.del-bill').forEach(b => b.addEventListener('click', async e => { if (!confirm('बिल हटाएँ? Cloud se bhi delete hoga.')) return; try { const { error } = await supabaseClient.from('bills').delete().eq('id', e.target.dataset.id); if (error) throw error; BILLS = BILLS.filter(x => x.dbId !== e.target.dataset.id); renderBillsList(); renderDashboard(); showToast('बिल हटा दिया', 'info'); } catch (err) { showToast('❌ ' + err.message, 'error'); } }));
+}
+document.getElementById('closeBillDetailModal').addEventListener('click', () => { document.getElementById('billDetailModal').classList.add('hidden'); document.getElementById('billDetailModal').classList.remove('flex'); });
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (!BILLS.length) { showToast('कोई data नहीं', 'warning'); return; }
+  const rows = [['Bill', 'Date', 'Customer', 'Mobile', 'Bike', 'Total', 'Discount%', 'Final', 'Status', 'Paid', 'Due']];
+  BILLS.forEach(b => { const d = b.paymentStatus === 'credit' ? b.finalAmount : b.paymentStatus === 'partial' ? b.finalAmount - b.paidAmount : 0; rows.push([b.id, b.date, b.customerName, b.customerMobile || '', b.bikeModel || '', b.totalAmount, b.discountPercent, b.finalAmount, b.paymentStatus, b.paidAmount || 0, d]); });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `bills_${todayISO()}.csv`; link.click();
+  showToast('📥 CSV download!');
+});
+
+function openContactModal(c = null) {
+  document.getElementById('contactModal').classList.remove('hidden'); document.getElementById('contactModal').classList.add('flex');
+  document.getElementById('newContactName').value = c ? c.name : ''; document.getElementById('newContactMobile').value = c ? (c.mobile || '') : ''; document.getElementById('newContactBike').value = c ? (c.bike || '') : ''; document.getElementById('newContactAddress').value = c ? (c.address || '') : '';
+  document.getElementById('newContactName').dataset.editId = c ? c.id : '';
+}
+window.openContactModal = openContactModal;
+document.getElementById('closeContactModal').addEventListener('click', () => { document.getElementById('contactModal').classList.add('hidden'); document.getElementById('contactModal').classList.remove('flex'); });
+document.getElementById('saveContactBtn').addEventListener('click', async () => {
+  const name = document.getElementById('newContactName').value.trim();
+  if (!name) { showToast('नाम भरें!', 'error'); return; }
+  const editId = document.getElementById('newContactName').dataset.editId;
+  const payload = { name, mobile: document.getElementById('newContactMobile').value, bike: document.getElementById('newContactBike').value, address: document.getElementById('newContactAddress').value };
+  try {
+    if (editId) { const { error } = await supabaseClient.from('contacts').update(payload).eq('id', editId); if (error) throw error; const c = CONTACTS.find(x => x.id === editId); if (c) Object.assign(c, payload); }
+    else { const newC = { id: 'c' + Date.now(), ...payload }; const { data: created, error } = await supabaseClient.from('contacts').insert(newC).select().single(); if (error) throw error; CONTACTS.push(created); }
+    document.getElementById('closeContactModal').click();
+    renderContacts(); refreshCustomerDatalist();
+    showToast('✅ कस्टमर save!');
+  } catch (e) { showToast('❌ ' + e.message, 'error'); }
+});
+
+function renderContacts() {
+  const q = (document.getElementById('contactSearch').value || '').toLowerCase();
+  let list = [...CONTACTS].sort((a, b) => a.name.localeCompare(b.name));
+  if (q) list = list.filter(c => (c.name || '').toLowerCase().includes(q) || (c.mobile || '').includes(q));
+  document.getElementById('contactsList').innerHTML = list.length ? list.map(c => { const bal = getContactBalance(c.id); return `<div class="card-lift p-3 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl"><div class="flex justify-between items-start"><div class="flex-1 min-w-0"><p class="font-bold text-gray-800 font-poppins truncate">${escapeHTML(c.name)}</p><p class="text-xs text-gray-600 font-poppins mt-0.5">📱 ${escapeHTML(c.mobile || '—')}</p><p class="text-xs text-gray-600 font-poppins">🏍️ ${escapeHTML(c.bike || '—')}</p>${bal ? `<p class="text-xs font-bold mt-1 font-poppins ${bal > 0 ? 'text-rose-600' : 'text-emerald-600'}">${bal > 0 ? 'बकाया: ' + inr(bal) : 'अधिक: ' + inr(-bal)}</p>` : ''}</div><div class="flex flex-col gap-1"><button class="edit-contact text-xs bg-blue-100 hover:bg-blue-500 text-blue-700 hover:text-white px-2 py-1 rounded font-poppins" data-id="${c.id}">✏️</button><button class="del-contact text-xs bg-rose-100 hover:bg-rose-500 text-rose-700 hover:text-white px-2 py-1 rounded font-poppins" data-id="${c.id}">🗑</button></div></div></div>`; }).join('') : '<p class="text-gray-500 text-sm text-center py-6 col-span-full">कोई कस्टमर नहीं</p>';
+  document.querySelectorAll('.edit-contact').forEach(b => b.addEventListener('click', e => { const c = CONTACTS.find(x => x.id === e.target.dataset.id); if (c) openContactModal(c); }));
+  document.querySelectorAll('.del-contact').forEach(b => b.addEventListener('click', async e => { if (!confirm('हटाएँ?')) return; try { const { error } = await supabaseClient.from('contacts').delete().eq('id', e.target.dataset.id); if (error) throw error; CONTACTS = CONTACTS.filter(x => x.id !== e.target.dataset.id); renderContacts(); refreshCustomerDatalist(); showToast('हटा दिया', 'info'); } catch (err) { showToast('❌ ' + err.message, 'error'); } }));
+}
+document.getElementById('contactSearch').addEventListener('input', renderContacts);
+
+function refreshCustomerDatalist() { document.getElementById('customerList').innerHTML = CONTACTS.map(c => `<option value="${escapeHTML(c.name)}">`).join(''); }
+
+function renderKhata() {
+  const box = document.getElementById('khataList');
+  if (!CONTACTS.length) { box.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">कोई ग्राहक नहीं</p>'; return; }
+  box.innerHTML = CONTACTS.map(c => {
+    const bal = getContactBalance(c.id);
+    const events = [];
+    BILLS.filter(b => b.contactId === c.id).forEach(b => { if (b.paymentStatus === 'credit') events.push({ date: b.date, desc: `बिल ${b.id}`, type: 'debit', amount: b.finalAmount }); else if (b.paymentStatus === 'partial') { const d = b.finalAmount - b.paidAmount; if (d > 0) events.push({ date: b.date, desc: `बिल ${b.id} (आंशिक)`, type: 'debit', amount: d }); } });
+    TRANSACTIONS.filter(t => t.contactId === c.id).forEach(t => events.push({ date: t.date, desc: t.note || 'भुगतान', type: t.type, amount: t.amount }));
+    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    let running = 0, rows = '';
+    events.forEach(ev => { if (ev.type === 'debit') running += ev.amount; else running -= ev.amount; const c2 = ev.type === 'debit' ? 'text-rose-600' : 'text-emerald-600'; const s = ev.type === 'debit' ? '+' : '−'; rows += `<tr class="border-b border-gray-100"><td class="py-1.5 px-2 text-xs">${formatDate(ev.date)}</td><td class="py-1.5 px-2 text-xs">${escapeHTML(ev.desc)}</td><td class="py-1.5 px-2 text-xs text-right font-bold ${c2} font-poppins">${s}${inr(ev.amount)}</td><td class="py-1.5 px-2 text-xs text-right font-poppins font-semibold">${inr(running)}</td></tr>`; });
+    return `<div class="border-2 border-gray-100 rounded-xl overflow-hidden"><div class="flex items-center justify-between p-3 bg-gradient-to-r ${bal > 0 ? 'from-rose-50 to-orange-50' : 'from-gray-50 to-slate-50'}"><div><p class="font-bold text-gray-800 font-poppins">${escapeHTML(c.name)}</p><p class="text-xs text-gray-500 font-poppins">📱 ${escapeHTML(c.mobile || '—')}</p></div><div class="text-right"><p class="text-lg font-extrabold font-poppins ${bal > 0 ? 'text-rose-600' : 'text-gray-600'}">${inr(Math.abs(bal))} ${bal > 0 ? '🔴' : '⚪'}</p>${bal > 0 ? `<button onclick="openPaymentModal('${c.id}')" class="text-xs bg-emerald-500 text-white px-2 py-1 rounded mt-1 font-poppins font-bold">💰 पेमेंट</button>` : ''}</div></div>${rows ? `<table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="py-1.5 px-2 text-left text-xs font-poppins">तारीख</th><th class="py-1.5 px-2 text-left text-xs font-poppins">विवरण</th><th class="py-1.5 px-2 text-right text-xs font-poppins">राशि</th><th class="py-1.5 px-2 text-right text-xs font-poppins">बकाया</th></tr></thead><tbody>${rows}</tbody></table>` : ''}</div>`;
+  }).join('');
+}
+
+function openPaymentModal(cid = null) {
+  const sel = document.getElementById('paymentCustomer');
+  sel.innerHTML = CONTACTS.map(c => `<option value="${c.id}" ${cid === c.id ? 'selected' : ''}>${escapeHTML(c.name)}</option>`).join('');
+  updatePaymentDue();
+  document.getElementById('paymentModal').classList.remove('hidden'); document.getElementById('paymentModal').classList.add('flex');
+}
+window.openPaymentModal = openPaymentModal;
+document.getElementById('closePaymentModal').addEventListener('click', () => { document.getElementById('paymentModal').classList.add('hidden'); document.getElementById('paymentModal').classList.remove('flex'); });
+document.getElementById('paymentCustomer').addEventListener('change', updatePaymentDue);
+function updatePaymentDue() { const id = document.getElementById('paymentCustomer').value; const b = getContactBalance(id); document.getElementById('paymentCustomerDue').textContent = b > 0 ? 'वर्तमान बकाया: ' + inr(b) : 'कोई बकाया नहीं'; }
+document.getElementById('savePaymentBtn').addEventListener('click', async () => {
+  const id = document.getElementById('paymentCustomer').value;
+  const amt = parseFloat(document.getElementById('paymentAmount').value) || 0;
+  if (amt <= 0) { showToast('राशि डालें!', 'error'); return; }
+  const t = { id: 't' + Date.now(), contact_id: id, type: 'payment', amount: amt, date: todayISO(), note: document.getElementById('paymentNote').value.trim() };
+  try { const { error } = await supabaseClient.from('transactions').insert(t); if (error) throw error; TRANSACTIONS.push({ ...t, contactId: id }); document.getElementById('closePaymentModal').click(); renderKhata(); renderDashboard(); showToast('✅ पेमेंट save!'); } catch (e) { showToast('❌ ' + e.message, 'error'); }
+});
+
+function renderAll() { renderDashboard(); renderBillsList(); renderContacts(); renderKhata(); refreshCustomerDatalist(); }
+
+// Auto-init on page load
+initSupabase();
+setConnStatus('syncing', 'Ready');
+
+// Auto-login if PIN saved
+if (AUTH.pin && AUTH.name) {
+  document.getElementById('ownerName').value = AUTH.name;
+  document.getElementById('ownerPin').value = AUTH.pin;
+}
+</script>
+</body>
+</html>
