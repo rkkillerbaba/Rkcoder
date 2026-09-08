@@ -12,6 +12,9 @@
   <meta name="apple-mobile-web-app-title" content="प्रदीप बाइक" />
   <link rel="manifest" id="manifestLink" />
 
+  <!-- Modern Icon Pack: Remix Icon -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' }
@@ -19,7 +22,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin />
 
   <style>
     :root { --c-primary: #4f46e5; --c-secondary: #7c3aed; --c-success: #16a34a; --c-danger: #dc2626; }
@@ -66,7 +69,7 @@
     .swipe-bg-actions { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 1; border-radius: 12px; font-weight: 700; font-size: 13px; }
 
     @media print {
-      @page { size: A4 portrait; margin: 8mm; }
+      @page { size: A4 portrait; margin: 6mm; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
       body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
       body * { visibility: hidden !important; }
@@ -85,18 +88,18 @@
   <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5">
     <div class="flex items-center justify-between gap-2">
       
-      <!-- Brand Logo & Shop Name -->
+      <!-- Logo & Name -->
       <div class="flex items-center gap-2.5 min-w-0">
-        <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center ring-2 ring-white/30 text-xl shrink-0 shadow-inner">
-          🏍️
+        <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center ring-1 ring-white/25 text-white shrink-0 shadow-inner">
+          <i class="ri-motorbike-fill text-2xl"></i>
         </div>
         <div class="min-w-0">
           <h1 class="text-base sm:text-lg font-black tracking-tight leading-tight truncate font-poppins">
             प्रदीप बाइक सर्विस
           </h1>
           <div class="flex items-center gap-1.5 mt-0.5">
-            <span id="connDot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <p id="connStatusText" class="text-[10px] sm:text-xs text-blue-100 font-poppins truncate">
+            <span id="connDot" class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+            <p id="connStatusText" class="text-[10px] sm:text-xs text-blue-100 font-poppins truncate font-medium">
               Connecting...
             </p>
           </div>
@@ -105,41 +108,45 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <button id="themeToggleBtn" onclick="toggleDarkMode()" class="bg-white/15 hover:bg-white/25 active:scale-95 transition p-2 rounded-lg font-poppins text-xs border border-white/20 shadow-sm" title="डार्क / लाइट मोड">
-          <span id="themeIcon">🌙</span>
+        <button id="themeToggleBtn" onclick="toggleDarkMode()" class="bg-white/10 hover:bg-white/20 active:scale-95 transition p-2 rounded-xl border border-white/15 shadow-sm flex items-center justify-center" title="डार्क / लाइट मोड">
+          <i id="themeIcon" class="ri-moon-fill text-base"></i>
         </button>
 
-        <button id="pwaInstallBtn" class="hidden flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-bold text-white shadow-sm" title="App Install Karein">
-          <span>📲</span>
+        <button id="pwaInstallBtn" class="hidden flex items-center gap-1 bg-emerald-500/90 hover:bg-emerald-600 active:scale-95 transition px-2.5 py-1.5 rounded-xl font-poppins text-xs font-semibold text-white shadow-sm border border-emerald-400/30" title="App Install Karein">
+          <i class="ri-download-cloud-2-fill text-sm"></i>
           <span class="hidden sm:inline">ऐप</span>
         </button>
 
-        <button id="syncBtn" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="डेटा सिंक">
-          <span>🔄</span>
+        <button id="syncBtn" class="flex items-center gap-1 bg-white/10 hover:bg-white/20 active:scale-95 transition px-2.5 py-1.5 rounded-xl font-poppins text-xs font-semibold border border-white/15 shadow-sm" title="डेटा सिंक">
+          <i class="ri-refresh-line text-sm"></i>
           <span class="hidden sm:inline">Sync</span>
         </button>
 
         <div class="relative">
-          <button id="toolsToggleBtn" onclick="toggleToolsMenu()" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="टूल्स">
-            <span>⚙️</span>
-            <span class="text-[10px] opacity-75">▼</span>
+          <button id="toolsToggleBtn" onclick="toggleToolsMenu()" class="flex items-center gap-1 bg-white/10 hover:bg-white/20 active:scale-95 transition px-2.5 py-1.5 rounded-xl font-poppins text-xs font-semibold border border-white/15 shadow-sm" title="टूल्स">
+            <i class="ri-tools-fill text-sm"></i>
+            <i class="ri-arrow-down-s-line text-xs opacity-75"></i>
           </button>
           
-          <div id="toolsMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-2xl border border-white/10 p-1.5 z-50 text-xs font-poppins">
-            <button id="cleanupBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-amber-500/20 text-amber-300 rounded-lg font-medium transition text-left">
-              <span>🧹</span> Fix Ledger
+          <div id="toolsMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-white/10 p-1.5 z-50 text-xs font-poppins">
+            <button id="cleanupBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-amber-500/20 text-amber-300 rounded-xl font-medium transition text-left">
+              <i class="ri-magic-line text-base text-amber-400"></i>
+              Fix Ledger
             </button>
-            <button onclick="toggleToolsMenu(); aggressiveCleanup();" class="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-orange-500/20 text-orange-300 rounded-lg font-medium transition text-left mt-0.5">
-              <span>🔥</span> Aggressive Clean
+            <button onclick="toggleToolsMenu(); aggressiveCleanup();" class="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-orange-500/20 text-orange-300 rounded-xl font-medium transition text-left mt-0.5">
+              <i class="ri-fire-fill text-base text-orange-400"></i>
+              Aggressive Clean
             </button>
-            <button id="nuclearBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-rose-500/20 text-rose-300 rounded-lg font-medium transition text-left mt-0.5">
-              <span>☢️</span> Nuclear Reset
+            <button id="nuclearBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-rose-500/20 text-rose-300 rounded-xl font-medium transition text-left mt-0.5">
+              <i class="ri-radioactive-fill text-base text-rose-400"></i>
+              Nuclear Reset
             </button>
           </div>
         </div>
 
-        <button id="logoutBtn" class="flex items-center gap-1 bg-rose-500/80 hover:bg-rose-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold text-white shadow-sm" title="लॉगआउट">
-          <span>🚪</span>
+        <button id="logoutBtn" class="flex items-center gap-1 bg-rose-500/80 hover:bg-rose-600 active:scale-95 transition p-2 sm:px-2.5 sm:py-1.5 rounded-xl font-poppins text-xs font-semibold text-white shadow-sm border border-rose-400/30" title="लॉगआउट">
+          <i class="ri-logout-box-r-line text-sm"></i>
+          <span class="hidden sm:inline">Logout</span>
         </button>
       </div>
     </div>
@@ -153,24 +160,28 @@
   <div id="page-login" class="page active">
     <div class="max-w-md mx-auto bg-white dark:bg-slate-900 dark:border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 mt-6 sm:mt-12 border border-slate-100 transition-colors">
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-3 text-4xl shadow-lg">🏍️</div>
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-3 shadow-lg shadow-indigo-500/30 text-white">
+          <i class="ri-motorbike-fill text-4xl"></i>
+        </div>
         <h1 class="text-2xl font-black font-poppins text-gray-800 dark:text-white">प्रदीप बाइक सर्विस</h1>
         <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins mt-0.5">Pradeep Bike Service • Cloud Billing</p>
       </div>
       <div class="space-y-4">
         <div>
           <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase font-poppins tracking-wider">Owner Name</label>
-          <input type="text" id="ownerName" class="w-full mt-1 px-3 py-2.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" placeholder="Pradeep Vishwakarma">
+          <input type="text" id="ownerName" class="w-full mt-1 px-3.5 py-2.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" placeholder="Pradeep Vishwakarma">
         </div>
         <div>
           <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase font-poppins tracking-wider">PIN (4 digits)</label>
           <input type="password" id="ownerPin" maxlength="4" class="w-full mt-1 px-3 py-3 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-xl focus:outline-none focus:border-indigo-500 input-glow font-poppins text-2xl font-bold text-center tracking-widest" placeholder="• • • •">
         </div>
         <button id="loginBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl font-poppins shadow-lg flex items-center justify-center gap-2 transition active:scale-95">
-          <span>🔐</span> Login / Start
+          <i class="ri-lock-2-fill text-lg"></i>
+          Login / Start
         </button>
-        <button id="testConnBtn" type="button" class="w-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 text-gray-600 dark:text-gray-300 font-semibold py-2.5 rounded-xl font-poppins text-xs border border-gray-200 dark:border-slate-700 transition">
-          🔧 Connection Test
+        <button id="testConnBtn" type="button" class="w-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 text-gray-600 dark:text-gray-300 font-semibold py-2.5 rounded-xl font-poppins text-xs border border-gray-200 dark:border-slate-700 transition flex items-center justify-center gap-1.5">
+          <i class="ri-wifi-line text-sm"></i>
+          Connection Test
         </button>
         <div id="testResult" class="hidden text-xs font-poppins p-3 rounded-xl border"></div>
       </div>
@@ -179,7 +190,10 @@
 
   <!-- DASHBOARD -->
   <div id="page-dashboard" class="page">
-    <h2 class="text-2xl font-bold font-poppins text-gray-800 dark:text-white mb-4">📊 डैशबोर्ड</h2>
+    <h2 class="text-2xl font-bold font-poppins text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+      <i class="ri-dashboard-3-fill text-indigo-600"></i>
+      डैशबोर्ड
+    </h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div class="stat-card card-lift bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg">
         <p class="text-xs sm:text-sm opacity-90 font-poppins">कुल बिल</p>
@@ -212,7 +226,10 @@
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-slate-800 transition-colors">
       <div class="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white">🧾 नया बिल</h2>
+          <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white flex items-center gap-2">
+            <i class="ri-file-add-fill text-indigo-600"></i>
+            नया बिल
+          </h2>
           <p class="text-xs text-gray-500 dark:text-gray-400">Repair Invoice</p>
         </div>
         <div class="text-right">
@@ -227,16 +244,20 @@
           <!-- Customer Name -->
           <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/60 border border-blue-100 dark:border-slate-700">
             <label class="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-400 font-poppins mb-1">
-              <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">👤</span>ग्राहक का नाम
+              <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm">
+                <i class="ri-user-3-fill"></i>
+              </span>ग्राहक का नाम
             </label>
             <input type="text" id="customerName" list="customerList" class="w-full px-3 py-2 border-2 border-indigo-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-devanagari bg-white" placeholder="ग्राहक चुनें">
             <datalist id="customerList"></datalist>
           </div>
 
-          <!-- Smart Masking Bike Number -->
+          <!-- Bike Number -->
           <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800/60 border border-purple-100 dark:border-slate-700">
             <label class="flex items-center gap-2 text-sm font-semibold text-purple-700 dark:text-purple-400 font-poppins mb-1">
-              <span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">🏍️</span>गाड़ी नंबर (Auto Format)
+              <span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm">
+                <i class="ri-motorbike-fill"></i>
+              </span>गाड़ी नंबर (Auto Format)
             </label>
             <input type="text" id="bikeModel" class="w-full px-3 py-2 border-2 border-purple-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:border-purple-500 font-poppins font-bold uppercase tracking-wider bg-white" placeholder="MP 20 AB 1234">
           </div>
@@ -244,7 +265,9 @@
           <!-- Date -->
           <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800/60 border border-emerald-100 dark:border-slate-700">
             <label class="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400 font-poppins mb-1">
-              <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📅</span>तारीख
+              <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm">
+                <i class="ri-calendar-event-fill"></i>
+              </span>तारीख
             </label>
             <input type="date" id="date" class="w-full px-3 py-2 border-2 border-emerald-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:border-emerald-500 font-poppins bg-white">
           </div>
@@ -252,7 +275,9 @@
           <!-- Mobile -->
           <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-800/60 border border-orange-100 dark:border-slate-700">
             <label class="flex items-center gap-2 text-sm font-semibold text-orange-700 dark:text-orange-400 font-poppins mb-1">
-              <span class="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center text-xs">📱</span>मोबाइल
+              <span class="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center text-sm">
+                <i class="ri-phone-fill"></i>
+              </span>मोबाइल
             </label>
             <input type="tel" id="customerMobile" maxlength="10" class="w-full px-3 py-2 border-2 border-orange-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:outline-none focus:border-orange-500 font-poppins bg-white" placeholder="9876543210">
           </div>
@@ -263,13 +288,13 @@
           <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 font-poppins mb-2">💳 भुगतान स्थिति</label>
           <div class="flex flex-wrap gap-2">
             <label class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-emerald-200 dark:border-emerald-700 rounded-lg cursor-pointer">
-              <input type="radio" name="paymentStatus" value="paid" checked class="accent-emerald-600"> <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">✅ भुगतान</span>
+              <input type="radio" name="paymentStatus" value="paid" checked class="accent-emerald-600"> <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">पूर्ण भुगतान</span>
             </label>
             <label class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-rose-200 dark:border-rose-700 rounded-lg cursor-pointer">
-              <input type="radio" name="paymentStatus" value="credit" class="accent-rose-600"> <span class="text-sm font-semibold text-rose-700 dark:text-rose-400">⏳ उधार</span>
+              <input type="radio" name="paymentStatus" value="credit" class="accent-rose-600"> <span class="text-sm font-semibold text-rose-700 dark:text-rose-400">उधार</span>
             </label>
             <label class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-700 border-2 border-blue-200 dark:border-blue-700 rounded-lg cursor-pointer">
-              <input type="radio" name="paymentStatus" value="partial" class="accent-blue-600"> <span class="text-sm font-semibold text-blue-700 dark:text-blue-400">🔶 आंशिक</span>
+              <input type="radio" name="paymentStatus" value="partial" class="accent-blue-600"> <span class="text-sm font-semibold text-blue-700 dark:text-blue-400">आंशिक</span>
             </label>
           </div>
           <div id="partialPayBox" class="hidden mt-2">
@@ -281,7 +306,9 @@
         <div class="mb-6">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-lg font-bold text-gray-800 dark:text-white font-poppins flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center">🔩</span>मरम्मत आइटम्स
+              <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-sm">
+                <i class="ri-settings-4-fill"></i>
+              </span>मरम्मत आइटम्स
             </h3>
             <span id="itemCount" class="text-xs font-semibold text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-full font-poppins">0 आइटम</span>
           </div>
@@ -300,12 +327,15 @@
               <tbody id="itemsBody" class="divide-y divide-gray-100 dark:divide-slate-700"></tbody>
             </table>
           </div>
-          <button id="addRowBtn" class="btn-shine mt-3 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white font-bold py-3 px-4 rounded-xl font-poppins shadow-lg">＋ नई पंक्ति</button>
+          <button id="addRowBtn" class="btn-shine mt-3 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white font-bold py-3 px-4 rounded-xl font-poppins shadow-lg flex items-center justify-center gap-2">
+            <i class="ri-add-line text-lg"></i>
+            नई पंक्ति जोड़ें
+          </button>
         </div>
 
         <!-- SUMMARY -->
         <div class="rounded-2xl overflow-hidden border-2 border-indigo-100 dark:border-slate-700 shadow-md mb-6">
-          <div class="px-5 py-3 text-white font-poppins font-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">💰 बिल सारांश</div>
+          <div class="px-5 py-3 text-white font-poppins font-semibold" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">बिल सारांश</div>
           <div class="p-5 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 space-y-3">
             <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-slate-700">
               <span class="text-gray-700 dark:text-gray-300 font-poppins font-semibold">कुल राशि</span>
@@ -316,17 +346,29 @@
               <input type="number" id="discount" class="w-24 px-2 py-1 border-2 border-orange-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-right font-poppins font-bold text-orange-600" value="0" min="0" max="100">
             </div>
             <div class="flex justify-between items-center py-3 px-4 rounded-xl text-white font-poppins" style="background: linear-gradient(135deg, #16a34a 0%, #059669 100%);">
-              <span class="font-bold flex items-center gap-2"><span class="text-xl">✅</span> देय राशि</span>
+              <span class="font-bold flex items-center gap-2">देय राशि</span>
               <span id="finalAmount" class="text-2xl font-extrabold pulse-amount">₹0.00</span>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button id="saveBillBtn" class="btn-shine bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">💾 सेव</button>
-          <button id="previewBtn" class="btn-shine bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">👁️ प्रीव्यू</button>
-          <button id="printPdfBtn" class="btn-shine bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">🖨️ प्रिंट / PDF</button>
-          <button id="whatsappBtn" class="btn-shine bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm">💬 WhatsApp</button>
+          <button id="saveBillBtn" class="btn-shine bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm flex items-center justify-center gap-1.5">
+            <i class="ri-save-3-fill text-base"></i>
+            सेव
+          </button>
+          <button id="previewBtn" class="btn-shine bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm flex items-center justify-center gap-1.5">
+            <i class="ri-eye-fill text-base"></i>
+            प्रीव्यू
+          </button>
+          <button id="printPdfBtn" class="btn-shine bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm flex items-center justify-center gap-1.5">
+            <i class="ri-printer-fill text-base"></i>
+            प्रिंट / PDF
+          </button>
+          <button id="whatsappBtn" class="btn-shine bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-3 rounded-xl font-poppins shadow-lg text-sm flex items-center justify-center gap-1.5">
+            <i class="ri-whatsapp-fill text-base"></i>
+            WhatsApp
+          </button>
         </div>
       </div>
     </div>
@@ -336,17 +378,22 @@
   <div id="page-bills" class="page">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-800 transition-colors">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white">📋 बिल्स लिस्ट</h2>
+        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white flex items-center gap-2">
+          <i class="ri-bill-fill text-indigo-600"></i>
+          बिल्स लिस्ट
+        </h2>
         <div class="flex gap-2">
-          <input type="text" id="billSearch" placeholder="🔍 खोजें..." class="px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-400 font-poppins text-sm w-40 sm:w-64">
-          <button id="exportBtn" class="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-3 py-2 rounded-lg font-poppins text-sm font-bold">📥</button>
+          <input type="text" id="billSearch" placeholder="खोजें..." class="px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-400 font-poppins text-sm w-40 sm:w-64">
+          <button id="exportBtn" class="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-3 py-2 rounded-lg font-poppins text-sm font-bold flex items-center gap-1">
+            <i class="ri-download-2-fill text-base"></i>
+          </button>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 mb-4 text-xs">
         <button class="filter-btn px-3 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold font-poppins" data-filter="all">सभी</button>
-        <button class="filter-btn px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold font-poppins" data-filter="paid">✅ भुगतान</button>
-        <button class="filter-btn px-3 py-1.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold font-poppins" data-filter="credit">⏳ उधार</button>
-        <button class="filter-btn px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold font-poppins" data-filter="partial">🔶 आंशिक</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold font-poppins" data-filter="paid">पूर्ण भुगतान</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold font-poppins" data-filter="credit">उधार</button>
+        <button class="filter-btn px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold font-poppins" data-filter="partial">आंशिक</button>
       </div>
       <div id="billsList" class="space-y-3"><p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं</p></div>
     </div>
@@ -356,10 +403,16 @@
   <div id="page-contacts" class="page">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-800 transition-colors">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white">👥 कस्टमर</h2>
-        <button onclick="openContactModal()" class="btn-shine bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-2 px-4 rounded-xl font-poppins text-sm shadow-lg">＋ नया</button>
+        <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white flex items-center gap-2">
+          <i class="ri-team-fill text-indigo-600"></i>
+          कस्टमर
+        </h2>
+        <button onclick="openContactModal()" class="btn-shine bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-2 px-4 rounded-xl font-poppins text-sm shadow-lg flex items-center gap-1.5">
+          <i class="ri-user-add-fill text-base"></i>
+          नया
+        </button>
       </div>
-      <input type="text" id="contactSearch" placeholder="🔍 खोजें..." class="w-full mb-4 px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-400 font-poppins text-sm">
+      <input type="text" id="contactSearch" placeholder="खोजें..." class="w-full mb-4 px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-400 font-poppins text-sm">
       <div id="contactsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"><p class="text-gray-500 text-sm text-center py-6 col-span-full">कोई कस्टमर नहीं</p></div>
     </div>
   </div>
@@ -367,7 +420,10 @@
   <!-- KHATA -->
   <div id="page-khata" class="page">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-4 sm:p-6 border border-gray-100 dark:border-slate-800 transition-colors">
-      <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white mb-4">💼 खाता बही</h2>
+      <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+        <i class="ri-book-read-fill text-indigo-600"></i>
+        खाता बही
+      </h2>
       <div id="khataList" class="space-y-3"><p class="text-gray-500 text-sm text-center py-6">कोई ग्राहक नहीं</p></div>
     </div>
   </div>
@@ -375,25 +431,25 @@
 </div>
 
 <!-- ==================== BOTTOM NAVIGATION ==================== -->
-<nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-slate-800 px-3 py-1.5 flex justify-around items-center shadow-lg sm:hidden hidden">
-  <button onclick="switchTab('dashboard')" class="nav-item flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600" data-nav="dashboard">
-    <span class="text-lg">📊</span>
+<nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-slate-800 px-3 py-1.5 flex justify-around items-center shadow-lg sm:hidden hidden">
+  <button onclick="switchTab('dashboard')" class="nav-item flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition" data-nav="dashboard">
+    <i class="ri-dashboard-3-line text-xl"></i>
     <span class="text-[10px] font-bold font-poppins">डैशबोर्ड</span>
   </button>
-  <button onclick="switchTab('bill')" class="nav-item flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600" data-nav="bill">
-    <span class="text-lg">🧾</span>
+  <button onclick="switchTab('bill')" class="nav-item flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition" data-nav="bill">
+    <i class="ri-file-add-line text-xl"></i>
     <span class="text-[10px] font-bold font-poppins">नया बिल</span>
   </button>
-  <button onclick="switchTab('bills')" class="nav-item flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600" data-nav="bills">
-    <span class="text-lg">📋</span>
+  <button onclick="switchTab('bills')" class="nav-item flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition" data-nav="bills">
+    <i class="ri-bill-line text-xl"></i>
     <span class="text-[10px] font-bold font-poppins">बिल्स</span>
   </button>
-  <button onclick="switchTab('contacts')" class="nav-item flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600" data-nav="contacts">
-    <span class="text-lg">👥</span>
+  <button onclick="switchTab('contacts')" class="nav-item flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition" data-nav="contacts">
+    <i class="ri-user-3-line text-xl"></i>
     <span class="text-[10px] font-bold font-poppins">कस्टमर</span>
   </button>
-  <button onclick="switchTab('khata')" class="nav-item flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 hover:text-indigo-600" data-nav="khata">
-    <span class="text-lg">💼</span>
+  <button onclick="switchTab('khata')" class="nav-item flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition" data-nav="khata">
+    <i class="ri-book-2-line text-xl"></i>
     <span class="text-[10px] font-bold font-poppins">खाता</span>
   </button>
 </nav>
@@ -402,9 +458,12 @@
 <div id="previewModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-2 sm:p-4">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl p-3 sm:p-6 max-h-[94vh] overflow-y-auto modal-enter">
     <div class="flex justify-between items-center mb-3 pb-2 border-b dark:border-slate-800">
-      <h2 class="text-base sm:text-lg font-bold font-poppins text-gray-800 dark:text-white">🧾 बिल प्रीव्यू</h2>
+      <h2 class="text-base sm:text-lg font-bold font-poppins text-gray-800 dark:text-white">बिल प्रीव्यू</h2>
       <div class="flex gap-2 items-center">
-        <button id="modalPrintBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-poppins shadow">🖨️ प्रिंट / PDF</button>
+        <button id="modalPrintBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-poppins shadow flex items-center gap-1.5">
+          <i class="ri-printer-fill text-sm"></i>
+          प्रिंट / PDF
+        </button>
         <button id="closeModalBtn" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
       </div>
     </div>
@@ -414,26 +473,38 @@
 
 <div id="contactModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-5 modal-enter border dark:border-slate-800">
-    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold font-poppins dark:text-white">👤 कस्टमर</h2><button id="closeContactModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button></div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-bold font-poppins dark:text-white flex items-center gap-2">
+        <i class="ri-user-settings-fill text-indigo-600"></i>
+        कस्टमर
+      </h2>
+      <button id="closeContactModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+    </div>
     <div class="space-y-3">
       <input type="text" id="newContactName" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-devanagari" placeholder="नाम *">
       <input type="tel" id="newContactMobile" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-poppins" placeholder="मोबाइल">
       <input type="text" id="newContactBike" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-poppins uppercase" placeholder="गाड़ी नंबर">
       <input type="text" id="newContactAddress" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-devanagari" placeholder="पता">
-      <button id="saveContactBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">💾 सेव</button>
+      <button id="saveContactBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">सेव</button>
     </div>
   </div>
 </div>
 
 <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-3">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-5 modal-enter border dark:border-slate-800">
-    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold font-poppins dark:text-white">💰 पेमेंट</h2><button id="closePaymentModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button></div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-bold font-poppins dark:text-white flex items-center gap-2">
+        <i class="ri-hand-coin-fill text-emerald-600"></i>
+        पेमेंट
+      </h2>
+      <button id="closePaymentModal" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+    </div>
     <div class="space-y-3">
       <select id="paymentCustomer" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-devanagari"></select>
       <input type="number" id="paymentAmount" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-poppins font-bold text-lg" placeholder="₹ राशि *" min="0">
       <input type="text" id="paymentNote" class="w-full px-3 py-2 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg focus:outline-none focus:border-indigo-500 font-devanagari" placeholder="नोट">
       <div id="paymentCustomerDue" class="text-sm font-semibold text-rose-600 font-poppins"></div>
-      <button id="savePaymentBtn" class="btn-shine w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">✅ सेव</button>
+      <button id="savePaymentBtn" class="btn-shine w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg">सेव</button>
     </div>
   </div>
 </div>
@@ -441,9 +512,12 @@
 <div id="billDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-2 sm:p-4">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl p-3 sm:p-6 max-h-[94vh] overflow-y-auto modal-enter">
     <div class="flex justify-between items-center mb-3 pb-2 border-b dark:border-slate-800">
-      <h2 class="text-base sm:text-lg font-bold font-poppins text-gray-800 dark:text-white">📄 बिल विवरण</h2>
+      <h2 class="text-base sm:text-lg font-bold font-poppins text-gray-800 dark:text-white">बिल विवरण</h2>
       <div class="flex gap-2 items-center">
-        <button id="detailPrintBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-poppins shadow">🖨️ प्रिंट / PDF</button>
+        <button id="detailPrintBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold font-poppins shadow flex items-center gap-1.5">
+          <i class="ri-printer-fill text-sm"></i>
+          प्रिंट / PDF
+        </button>
         <button id="closeBillDetailModal" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
       </div>
     </div>
@@ -461,7 +535,7 @@ const MASTER_PIN = "9999";
 const UPI_ID = "7909511752@pthdfc";
 const UPI_PAYEE_NAME = "Pradeep Bike Service";
 
-// Supabase URL & Anon Key (Preserved as requested)
+// Supabase Credentials[span_0](start_span)[span_0](end_span)
 const SUPABASE_URL = 'https://oyjvbuqcylwdiahkvhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95anZidXFjeWx3ZGlhaGt2aGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3ODYzMTksImV4cCI6MjEwNDM2MjMxOX0.SRXsLn9uuT0sWX_d_HjLRAbpTX-JqLcAorgJLdjgg2U';
 
@@ -478,31 +552,33 @@ const AUTH = {
 };
 
 /* =========================================================
-   FEATURE: DARK MODE TOGGLE
+   DARK MODE TOGGLE
    ========================================================= */
 function initTheme() {
   const saved = localStorage.getItem('pbs_theme');
-  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark');
-    document.body.classList.add('dark');
-    document.getElementById('themeIcon').textContent = '☀️';
-  } else {
-    document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark');
-    document.getElementById('themeIcon').textContent = '🌙';
+  const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  applyTheme(isDark);
+}
+
+function applyTheme(isDark) {
+  document.documentElement.classList.toggle('dark', isDark);
+  document.body.classList.toggle('dark', isDark);
+  const icon = document.getElementById('themeIcon');
+  if (icon) {
+    icon.className = isDark ? 'ri-sun-fill text-amber-400 text-base' : 'ri-moon-fill text-base';
   }
 }
+
 function toggleDarkMode() {
-  const isDark = document.documentElement.classList.toggle('dark');
-  document.body.classList.toggle('dark', isDark);
+  const isDark = !document.documentElement.classList.contains('dark');
+  applyTheme(isDark);
   localStorage.setItem('pbs_theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-  showToast(isDark ? '🌙 डार्क मोड ऑन' : '☀️ लाइट मोड ऑन', 'info', 1500);
+  showToast(isDark ? 'डार्क मोड सक्रिय' : 'लाइट मोड सक्रिय', 'info', 1500);
 }
 initTheme();
 
 /* =========================================================
-   FEATURE: SMART BIKE NUMBER MASKING
+   SMART BIKE NUMBER MASKING
    ========================================================= */
 const bikeInput = document.getElementById('bikeModel');
 bikeInput.addEventListener('input', (e) => {
@@ -526,7 +602,7 @@ bikeInput.addEventListener('input', (e) => {
 });
 
 /* =========================================================
-   FEATURE: AUTO SAVE DRAFT
+   AUTO SAVE DRAFT
    ========================================================= */
 function saveDraft() {
   const draft = currentDraft();
@@ -559,7 +635,7 @@ function clearDraft() {
 });
 
 /* =========================================================
-   PWA MANIFEST SETUP
+   PWA MANIFEST
    ========================================================= */
 const appIconSvg = encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
@@ -603,7 +679,7 @@ pwaInstallBtn.addEventListener('click', async () => {
 });
 
 /* =========================================================
-   SUPABASE CONNECTION & AUTHENTICATION
+   SUPABASE CONNECTION & STRICT PIN CHECK
    ========================================================= */
 function initSupabase() {
   try {
@@ -640,26 +716,23 @@ document.getElementById('ownerPin').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
-// ✅ STRICT PIN VERIFICATION ADDED HERE
+// STRICT PIN VERIFICATION[span_1](start_span)[span_1](end_span)
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const name = document.getElementById('ownerName').value.trim() || 'Pradeep';
   const pin = document.getElementById('ownerPin').value.trim();
 
-  // 1. लंबाई की जांच
   if (pin.length !== 4) {
     showToast('⚠️ कृपया 4 अंकों का पूरा पिन दर्ज करें!', 'warning');
     return;
   }
 
-  // 2. सख्त पिन जांच (STRICT PIN CHECK)
   if (pin !== MASTER_PIN) {
-    showToast('❌ गलत PIN! कृपया सही पिन दर्ज करें।', 'error', 3000);
+    showToast('❌ गलत PIN! सही पिन दर्ज करें।', 'error', 3000);
     document.getElementById('ownerPin').value = '';
     document.getElementById('ownerPin').focus();
     return;
   }
 
-  // 3. सही पिन होने पर ही डेटाबेस से कनेक्ट करें
   const btn = document.getElementById('loginBtn');
   btn.innerHTML = '<span class="loading-spinner"></span> Connecting...';
   btn.disabled = true;
@@ -676,7 +749,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   } catch (e) {
     showToast('❌ ' + e.message, 'error');
   } finally {
-    btn.innerHTML = '<span>🔐</span> Login / Start';
+    btn.innerHTML = `<i class="ri-lock-2-fill text-lg"></i> Login / Start`;
     btn.disabled = false;
   }
 });
@@ -728,6 +801,10 @@ function updateNavUI(tab) {
     b.classList.toggle('text-indigo-600', active);
     b.classList.toggle('dark:text-indigo-400', active);
     b.classList.toggle('font-extrabold', active);
+    const icon = b.querySelector('i');
+    if (icon) {
+      icon.className = icon.className.replace(active ? '-line' : '-fill', active ? '-fill' : '-line');
+    }
   });
 }
 
@@ -795,10 +872,10 @@ async function loadAll() {
 document.getElementById('syncBtn').addEventListener('click', loadAll);
 
 /* =========================================================
-   CLEANUP & MAINTENANCE FUNCTIONS (ALL RESTORED)
+   CLEANUP & MAINTENANCE
    ========================================================= */
 async function cleanupData() {
-  if (!confirm('🧹 Cleanup shuru karein?\n\nYeh galat transactions fix karega.')) return;
+  if (!confirm('🧹 Cleanup शुरू करें? यह गलत लेनदेन को सुधारेगा।')) return;
   setConnStatus('syncing', 'Cleaning...');
   try {
     const { data: bills, error: bErr } = await supabaseClient.from('bills').select('*');
@@ -846,7 +923,7 @@ async function cleanupData() {
 document.getElementById('cleanupBtn').addEventListener('click', cleanupData);
 
 async function aggressiveCleanup() {
-  if (!confirm('🔥 Aggressive Cleanup?\n\nYeh har customer ka actual balance calculate karega aur extra auto-transactions DELETE karega.')) return;
+  if (!confirm('🔥 Aggressive Cleanup? यह हर ग्राहक का बैलेंस पुनः जांचेगा।')) return;
   setConnStatus('syncing', 'Aggressive cleaning...');
   try {
     const { data: bills } = await supabaseClient.from('bills').select('*');
@@ -889,7 +966,7 @@ async function aggressiveCleanup() {
 window.aggressiveCleanup = aggressiveCleanup;
 
 async function nuclearCleanup() {
-  if (!confirm('☢️ NUCLEAR RESET: Saari transactions delete hongi aur bills se dobara banegi. Sure?')) return;
+  if (!confirm('☢️ NUCLEAR RESET: सभी लेन-देन डिलीट कर बिलों से पुनः बनाए जाएंगे।')) return;
   setConnStatus('syncing', 'Nuclear cleaning...');
   try {
     const { error: delErr } = await supabaseClient.from('transactions').delete().neq('id', 'never');
@@ -922,7 +999,7 @@ async function nuclearCleanup() {
 document.getElementById('nuclearBtn').addEventListener('click', nuclearCleanup);
 
 /* =========================================================
-   BILL FORM
+   BILL FORM ENGINE
    ========================================================= */
 const itemsBody = document.getElementById('itemsBody');
 const addRowBtn = document.getElementById('addRowBtn');
@@ -947,11 +1024,13 @@ function addItemRow(item) {
       <input type="number" class="w-full px-1.5 py-1.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-center focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm qty-input" value="${s.quantity}" min="1">
     </td>
     <td class="px-1.5 py-2">
-      <input type="number" class="w-full px-2 py-1.5 border-2 border-indigo-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-right focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm rate-input" value="${s.rate}" min="0" placeholder="0">
+      <input type="number" class="w-full px-2 py-1.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-right focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm rate-input" value="${s.rate}" min="0" placeholder="0">
     </td>
     <td class="px-2 sm:px-3 py-2 text-right font-poppins font-bold text-indigo-700 dark:text-indigo-400 text-sm row-total">0.00</td>
     <td class="px-1 py-2 text-center">
-      <button class="removeRowBtn bg-red-100 dark:bg-rose-950 text-red-600 dark:text-rose-400 hover:bg-red-500 hover:text-white font-bold py-1.5 px-2 rounded-lg text-xs transition">🗑</button>
+      <button class="removeRowBtn bg-red-100 dark:bg-rose-950 text-red-600 dark:text-rose-400 hover:bg-red-500 hover:text-white font-bold py-1 px-2 rounded-lg text-sm transition">
+        <i class="ri-delete-bin-line"></i>
+      </button>
     </td>
   `;
   itemsBody.appendChild(row);
@@ -1006,7 +1085,7 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
       const rate = parseFloat(ins[2].value) || 0;
       if (desc) { items.push({ description: desc, quantity: qty, rate, total: qty * rate }); total += qty * rate; }
     });
-    if (!items.length) { showToast('विवरण भरें!', 'error'); btn.innerHTML = '💾 सेव'; btn.disabled = false; return; }
+    if (!items.length) { showToast('विवरण भरें!', 'error'); btn.innerHTML = 'सेव'; btn.disabled = false; return; }
     const dp = parseFloat(discountInput.value) || 0;
     const final = total - (total * dp / 100);
     const status = document.querySelector('input[name="paymentStatus"]:checked').value;
@@ -1059,26 +1138,25 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
   } catch (e) {
     showToast('❌ ' + e.message, 'error');
   } finally {
-    btn.innerHTML = '💾 सेव';
+    btn.innerHTML = `<i class="ri-save-3-fill text-base"></i> सेव`;
     btn.disabled = false;
   }
 });
 
 /* =========================================================
-   FEATURE: DYNAMIC UPI QR & INVOICE HTML
+   FIXED RESPONSIVE LUXURY INVOICE TEMPLATE (NO OVERLAPS)
    ========================================================= */
 function buildInvoiceHTML(bill) {
   let rowsHTML = '';
   let idx = 1;
   bill.items.forEach(it => {
-    const isEven = idx % 2 === 0;
     rowsHTML += `
-      <tr style="background-color: ${isEven ? '#f8fafc' : '#ffffff'};">
-        <td style="border: 1px solid #e2e8f0; padding: 7px 6px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 11px; color: #64748b;">${idx++}</td>
-        <td style="border: 1px solid #e2e8f0; padding: 7px 10px; font-family: 'Noto Sans Devanagari', sans-serif; font-size: 13px; font-weight: 600; color: #1e293b;">${escapeHTML(it.description)}</td>
-        <td style="border: 1px solid #e2e8f0; padding: 7px 6px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: #334155;">${it.quantity}</td>
-        <td style="border: 1px solid #e2e8f0; padding: 7px 10px; text-align: right; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: #334155;">${inr(it.rate)}</td>
-        <td style="border: 1px solid #e2e8f0; padding: 7px 10px; text-align: right; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 13px; color: #1e3a8a;">${inr(it.total)}</td>
+      <tr style="border-bottom: 1px solid #cbd5e1;">
+        <td style="padding: 10px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 12px; color: #475569; font-weight: 700; border-right: 1px solid #cbd5e1; background: #f8fafc;">${String(idx++).padStart(2, '0')}</td>
+        <td style="padding: 10px 14px; font-family: 'Noto Sans Devanagari', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.4; border-right: 1px solid #cbd5e1;">${escapeHTML(it.description)}</td>
+        <td style="padding: 10px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${it.quantity}</td>
+        <td style="padding: 10px 12px; text-align: right; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${inr(it.rate)}</td>
+        <td style="padding: 10px 14px; text-align: right; font-weight: 800; font-family: 'Poppins', sans-serif; font-size: 14px; color: #0f172a; background: #fafafa;">${inr(it.total)}</td>
       </tr>
     `;
   });
@@ -1089,118 +1167,147 @@ function buildInvoiceHTML(bill) {
   const amountToPay = bill.paymentStatus === 'partial' ? (fa - bill.paidAmount) : (bill.paymentStatus === 'paid' ? 0 : fa);
 
   const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${amountToPay.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Bill ' + bill.id)}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(upiUrl)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=4&data=${encodeURIComponent(upiUrl)}`;
 
-  let statusBadge = bill.paymentStatus === 'paid' ? 
-    `<span style="background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 3px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">✅ पूर्ण भुगतान</span>` : 
-    (bill.paymentStatus === 'credit' ? 
-      `<span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 3px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">⏳ उधार (Credit)</span>` : 
-      `<span style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; padding: 3px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">🔶 आंशिक भुगतान</span>`);
+  let statusColor = bill.paymentStatus === 'paid' ? '#15803d' : (bill.paymentStatus === 'credit' ? '#b91c1c' : '#1d4ed8');
+  let statusBg = bill.paymentStatus === 'paid' ? '#dcfce7' : (bill.paymentStatus === 'credit' ? '#fee2e2' : '#dbeafe');
+  let statusBorder = bill.paymentStatus === 'paid' ? '#86efac' : (bill.paymentStatus === 'credit' ? '#fca5a5' : '#93c5fd');
+  let statusText = bill.paymentStatus === 'paid' ? 'PAID (पूर्ण भुगतान)' : (bill.paymentStatus === 'credit' ? 'DUE (उधार बकाया)' : 'PARTIAL (आंशिक भुगतान)');
 
   return `
-  <div style="width: 100%; max-width: 760px; margin: 0 auto; padding: 16px; color: #0f172a; background: #ffffff; font-family: 'Noto Sans Devanagari', sans-serif; box-sizing: border-box;">
+  <div style="width: 100%; max-width: 760px; margin: 0 auto; padding: 20px; color: #0f172a; background: #ffffff; font-family: 'Noto Sans Devanagari', -apple-system, sans-serif; box-sizing: border-box; border: 2px solid #1e3a8a; border-radius: 12px; box-shadow: 0 4px 20px -2px rgba(30, 58, 138, 0.1);">
     
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #7c3aed 100%); color: #ffffff; padding: 16px; border-radius: 12px; margin-bottom: 12px; text-align: center;">
-      <div style="font-size: 28px; line-height: 1; margin-bottom: 3px;">🏍️</div>
-      <h1 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">प्रदीप बाइक सर्विस</h1>
-      <p style="margin: 2px 0 0 0; font-size: 12px; font-weight: 500; opacity: 0.95;">All Two Wheeler Repair, Maintenance & Spares</p>
-      <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.25); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 11px; font-family: 'Poppins', sans-serif;">
-        <span>📞 +91 7909511752</span>
-        <span>•</span>
-        <span>📍 जबलपुर रोड</span>
-      </div>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
-      <div><span style="color: #64748b; font-size: 11px; font-weight: 600;">बिल NO:</span> <strong style="color: #1e3a8a; font-family: 'Poppins', sans-serif;">${bill.id}</strong></div>
-      <div><span style="color: #64748b; font-size: 11px; font-weight: 600;">DATE:</span> <strong style="color: #334155; font-family: 'Poppins', sans-serif;">${formatDate(bill.date)}</strong></div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-      <div style="background: #ffffff; border: 1.5px solid #e0e7ff; padding: 8px 12px; border-radius: 8px;">
-        <div style="font-size: 10px; color: #6366f1; font-weight: 700;">ग्राहक विवरण</div>
-        <div style="font-size: 14px; font-weight: 700; color: #0f172a;">👤 ${escapeHTML(bill.customerName)}</div>
-        <div style="font-size: 11px; color: #64748b; font-family: 'Poppins', sans-serif;">📱 ${escapeHTML(bill.customerMobile || '—')}</div>
-      </div>
-      <div style="background: #ffffff; border: 1.5px solid #f3e8ff; padding: 8px 12px; border-radius: 8px;">
-        <div style="font-size: 10px; color: #9333ea; font-weight: 700;">वाहन व स्थिति</div>
-        <div style="font-size: 14px; font-weight: 700; color: #0f172a; font-family: 'Poppins', sans-serif;">🏍️ ${escapeHTML(bill.bikeModel || '—')}</div>
-        <div style="margin-top: 3px;">${statusBadge}</div>
-      </div>
-    </div>
-
-    <div style="overflow-x: auto; margin-bottom: 12px;">
-      <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden;">
-        <thead>
-          <tr style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #ffffff; font-size: 11px; text-transform: uppercase;">
-            <th style="padding: 7px 6px; width: 40px; text-align: center; border: 1px solid #3b82f6;">#</th>
-            <th style="padding: 7px 10px; text-align: left; border: 1px solid #3b82f6;">विवरण</th>
-            <th style="padding: 7px 6px; width: 55px; text-align: center; border: 1px solid #3b82f6;">मात्रा</th>
-            <th style="padding: 7px 10px; width: 80px; text-align: right; border: 1px solid #3b82f6;">दर</th>
-            <th style="padding: 7px 10px; width: 95px; text-align: right; border: 1px solid #3b82f6;">कुल</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHTML}
-        </tbody>
-      </table>
-    </div>
-
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <img src="${qrCodeUrl}" alt="UPI QR Code" style="width: 95px; height: 95px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;" />
+    <!-- BRAND BANNER & SHOP INFO -->
+    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%); color: #ffffff; padding: 18px 22px; border-radius: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="background: rgba(255,255,255,0.2); backdrop-blur: blur(4px); color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(255,255,255,0.3);">🏍️</div>
         <div>
-          <div style="font-size: 11px; font-weight: 800; color: #1e3a8a; font-family: 'Poppins', sans-serif;">SCAN TO PAY (UPI)</div>
-          <div style="font-size: 10px; color: #475569; font-family: 'Poppins', sans-serif;">${UPI_ID}</div>
-          <div style="font-size: 12px; font-weight: 700; color: #16a34a; font-family: 'Poppins', sans-serif; margin-top: 3px;">
-            ${amountToPay > 0 ? inr(amountToPay) : '✅ चुकता'}
-          </div>
-          <div style="font-size: 9px; color: #94a3b8;">GPay / PhonePe / Paytm</div>
+          <h1 style="margin: 0; font-size: 22px; font-weight: 900; font-family: 'Noto Sans Devanagari', sans-serif; letter-spacing: -0.3px; line-height: 1.1;">प्रदीप बाइक सर्विस</h1>
+          <p style="margin: 3px 0 0 0; font-size: 11px; font-weight: 700; color: #e0e7ff; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 1px;">Pradeep Bike Service • Two Wheeler Specialist</p>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'Poppins', sans-serif; font-size: 12px; line-height: 1.4; color: #f1f5f9;">
+        <div style="font-weight: 700; color: #ffffff;">📞 +91 7909511752</div>
+        <div style="font-size: 11px; color: #e2e8f0;">📍 कॉलेज रोड, गोटेगांव</div>
+      </div>
+    </div>
+
+    <!-- INVOICE METADATA STRIP -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px;">
+      <div style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #475569;">
+        INVOICE / बिल क्र: <strong style="color: #1e3a8a; font-size: 13px; margin-left: 4px;">${bill.id}</strong>
+      </div>
+      <div style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #475569;">
+        DATE / दिनांक: <strong style="color: #0f172a; font-size: 12px; margin-left: 4px;">${formatDate(bill.date)}</strong>
+      </div>
+    </div>
+
+    <!-- CUSTOMER & VEHICLE DETAILS GRID -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+      
+      <!-- Billed To -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff;">
+        <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif; margin-bottom: 2px;">BILLED TO / ग्राहक विवरण</div>
+        <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHTML(bill.customerName)}</div>
+        <div style="font-size: 11px; color: #475569; font-family: 'Poppins', sans-serif;">Mobile: <strong style="color: #0f172a;">${escapeHTML(bill.customerMobile || '—')}</strong></div>
+      </div>
+
+      <!-- Vehicle Info -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif; margin-bottom: 2px;">VEHICLE NO / गाड़ी नंबर</div>
+          <div style="font-size: 14px; font-weight: 900; color: #0f172a; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">${escapeHTML(bill.bikeModel || '—')}</div>
+        </div>
+        <div style="margin-top: 4px;">
+          <span style="display: inline-block; background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusBorder}; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; font-family: 'Poppins', sans-serif;">
+            ${statusText}
+          </span>
         </div>
       </div>
 
-      <div style="min-width: 200px; margin-left: auto;">
+    </div>
+
+    <!-- MAIN ITEMS TABLE -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; border: 1px solid #cbd5e1;">
+      <thead>
+        <tr style="background: #1e3a8a; color: #ffffff;">
+          <th style="padding: 8px 6px; width: 40px; text-align: center; font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 800; border-right: 1px solid #3b82f6;">#</th>
+          <th style="padding: 8px 10px; text-align: left; font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 800; border-right: 1px solid #3b82f6;">काम व सामान का विवरण (PARTICULARS)</th>
+          <th style="padding: 8px 6px; width: 55px; text-align: center; font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 800; border-right: 1px solid #3b82f6;">QTY</th>
+          <th style="padding: 8px 8px; width: 85px; text-align: right; font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 800; border-right: 1px solid #3b82f6;">RATE</th>
+          <th style="padding: 8px 10px; width: 95px; text-align: right; font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 800;">AMOUNT</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHTML}
+      </tbody>
+    </table>
+
+    <!-- TOTALS & UPI QR (STACKED FLEX FOR ZERO OVERFLOW) -->
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;">
+      
+      <!-- CALCULATION SUMMARY TABLE -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; width: 100%; box-sizing: border-box;">
         <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
           <tr>
-            <td style="padding: 2px 0; color: #475569;">कुल योग:</td>
-            <td style="padding: 2px 0; text-align: right; font-weight: 700; font-family: 'Poppins', sans-serif;">${inr(bill.totalAmount)}</td>
+            <td style="padding: 3px 0; color: #475569; font-weight: 600;">Sub Total (कुल योग):</td>
+            <td style="padding: 3px 0; text-align: right; font-weight: 700; font-family: 'Poppins', sans-serif; color: #0f172a;">${inr(bill.totalAmount)}</td>
           </tr>
           ${dp > 0 ? `
           <tr>
-            <td style="padding: 2px 0; color: #ea580c;">छूट (${dp}%):</td>
-            <td style="padding: 2px 0; text-align: right; font-weight: 700; color: #ea580c; font-family: 'Poppins', sans-serif;">− ${inr(da)}</td>
+            <td style="padding: 3px 0; color: #ea580c; font-weight: 600;">Discount (${dp}%):</td>
+            <td style="padding: 3px 0; text-align: right; font-weight: 700; color: #ea580c; font-family: 'Poppins', sans-serif;">− ${inr(da)}</td>
           </tr>` : ''}
-          <tr style="border-top: 1.5px dashed #cbd5e1;">
-            <td style="padding: 4px 0 2px 0; font-size: 13px; font-weight: 800; color: #0f172a;">देय राशि:</td>
-            <td style="padding: 4px 0 2px 0; text-align: right; font-size: 16px; font-weight: 900; color: #16a34a; font-family: 'Poppins', sans-serif;">${inr(fa)}</td>
+          <tr style="border-top: 1.5px solid #1e3a8a; border-bottom: 1.5px solid #1e3a8a;">
+            <td style="padding: 6px 0; font-size: 13px; font-weight: 900; color: #1e3a8a;">Grand Total (शुद्ध देय राशि):</td>
+            <td style="padding: 6px 0; text-align: right; font-size: 16px; font-weight: 900; color: #15803d; font-family: 'Poppins', sans-serif;">${inr(fa)}</td>
           </tr>
           ${bill.paymentStatus === 'partial' ? `
           <tr>
-            <td style="padding: 2px 0; font-size: 11px; color: #0284c7;">जमा:</td>
-            <td style="padding: 2px 0; text-align: right; font-size: 11px; font-weight: 700; color: #0284c7; font-family: 'Poppins', sans-serif;">${inr(bill.paidAmount)}</td>
+            <td style="padding: 4px 0 2px 0; font-size: 11px; color: #2563eb; font-weight: 700;">Paid Amount (जमा):</td>
+            <td style="padding: 4px 0 2px 0; text-align: right; font-size: 12px; font-weight: 800; color: #2563eb; font-family: 'Poppins', sans-serif;">${inr(bill.paidAmount)}</td>
           </tr>
           <tr>
-            <td style="padding: 2px 0; font-size: 11px; color: #dc2626; font-weight: 700;">बकाया:</td>
-            <td style="padding: 2px 0; text-align: right; font-size: 12px; font-weight: 800; color: #dc2626; font-family: 'Poppins', sans-serif;">${inr(fa - bill.paidAmount)}</td>
+            <td style="padding: 2px 0; font-size: 11px; color: #dc2626; font-weight: 700;">Balance Due (बकाया):</td>
+            <td style="padding: 2px 0; text-align: right; font-size: 12px; font-weight: 900; color: #dc2626; font-family: 'Poppins', sans-serif;">${inr(fa - bill.paidAmount)}</td>
           </tr>` : ''}
         </table>
       </div>
+
+      <!-- UPI QR CODE BLOCK -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #f8fafc; display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;">
+        <img src="${qrCodeUrl}" alt="UPI QR" style="width: 85px; height: 85px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; padding: 2px;" />
+        <div>
+          <div style="font-size: 11px; font-weight: 900; color: #1e3a8a; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px;">SCAN & PAY VIA UPI</div>
+          <div style="font-size: 10px; color: #475569; font-family: 'Poppins', sans-serif; font-weight: 600; margin: 1px 0;">${UPI_ID}</div>
+          <div style="font-size: 12px; font-weight: 900; color: #15803d; font-family: 'Poppins', sans-serif;">
+            ${amountToPay > 0 ? inr(amountToPay) : '✅ No Due'}
+          </div>
+          <div style="display: flex; gap: 4px; margin-top: 4px; align-items: center;">
+            <span style="background: #5f259f; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 3px; font-family: Poppins;">PhonePe</span>
+            <span style="background: #4285f4; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 3px; font-family: Poppins;">GPay</span>
+            <span style="background: #00b9f1; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 3px; font-family: Poppins;">Paytm</span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #64748b;">
+    <!-- TERMS & SIGNATURE -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 10px; border-top: 1px solid #cbd5e1; font-size: 9px; color: #64748b;">
       <div>
-        <p style="margin: 0; font-weight: 700; color: #334155;">📌 नियम व शर्तें:</p>
-        <p style="margin: 1px 0 0 0;">1. इलेक्ट्रॉनिक पार्ट्स पर कोई वारंटी नहीं।</p>
-        <p style="margin: 1px 0 0 0;">2. 7 दिनों के अंदर समस्या आने पर संपर्क करें।</p>
+        <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; font-family: 'Poppins', sans-serif; margin-bottom: 2px;">Terms & Conditions (नियम व शर्तें):</div>
+        <div>1. इलेक्ट्रॉनिक पार्ट्स पर कोई वारंटी नहीं होती है।</div>
+        <div>2. कार्य में शिकायत होने पर 7 दिनों के भीतर बिल सहित संपर्क करें।</div>
       </div>
       <div style="text-align: center; width: 120px;">
         <div style="height: 25px;"></div>
-        <p style="margin: 0; font-weight: 700; color: #0f172a; border-top: 1.5px solid #475569; padding-top: 2px;">अधिकृत हस्ताक्षर</p>
+        <div style="border-top: 1.5px solid #0f172a; padding-top: 2px; font-weight: 800; color: #0f172a; text-transform: uppercase; font-family: 'Poppins', sans-serif; font-size: 9px;">Authorized Signature</div>
       </div>
     </div>
 
-    <div style="text-align: center; margin-top: 10px; color: #4f46e5; font-weight: 700; font-size: 11px;">
-      🙏 धन्यवाद! आपकी सुरक्षित यात्रा हमारी प्राथमिकता है।
+    <div style="text-align: center; margin-top: 10px; font-size: 10px; color: #1e3a8a; font-weight: 700;">
+      ।। धन्यवाद! आपकी सुरक्षित यात्रा हमारी प्राथमिकता है ।।
     </div>
   </div>`;
 }
@@ -1287,23 +1394,23 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
 
   let lines = [];
   b.items.forEach((it, i) => lines.push(`${i + 1}. ${it.description} — ${it.quantity} × ${inr(it.rate)} = ${inr(it.total)}`));
-  const statusEmoji = b.paymentStatus === 'paid' ? '✅ पूर्ण भुगतान' : b.paymentStatus === 'credit' ? '⏳ उधार (बकाया)' : '🔶 आंशिक भुगतान';
+  const statusEmoji = b.paymentStatus === 'paid' ? 'पूर्ण भुगतान' : (b.paymentStatus === 'credit' ? 'उधार' : 'आंशिक भुगतान');
   
   const text =
-    `🏍️ *प्रदीप बाइक सर्विस*\n` +
+    `*प्रदीप बाइक सर्विस*\n` +
     `━━━━━━━━━━━━━━━\n` +
-    `🧾 *बिल क्र:* ${b.id}\n` +
-    `👤 *ग्राहक:* ${b.customerName}\n` +
-    `🏍️ *गाड़ी:* ${b.bikeModel || '—'}\n` +
-    `📅 *तारीख:* ${formatDate(b.date)}\n` +
+    `*बिल क्र:* ${b.id}\n` +
+    `*ग्राहक:* ${b.customerName}\n` +
+    `*गाड़ी:* ${b.bikeModel || '—'}\n` +
+    `*तारीख:* ${formatDate(b.date)}\n` +
     `━━━━━━━━━━━━━━━\n` +
-    (lines.length ? `*📋 विवरण:*\n${lines.join('\n')}\n` : '') +
+    (lines.length ? `*विवरण:*\n${lines.join('\n')}\n` : '') +
     `━━━━━━━━━━━━━━━\n` +
-    `💰 कुल राशि: ${inr(b.totalAmount)}\n` +
-    `*${statusEmoji}*\n` +
-    `*💵 शुद्ध देय: ${inr(b.finalAmount)}*\n` +
-    (amountDue > 0 ? `\n📲 *तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
-    `\n🙏 धन्यवाद!`;
+    `कुल राशि: ${inr(b.totalAmount)}\n` +
+    `स्थिति: ${statusEmoji}\n` +
+    `*शुद्ध देय: ${inr(b.finalAmount)}*\n` +
+    (amountDue > 0 ? `\n*तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
+    `\nधन्यवाद!`;
 
   const phone = (b.customerMobile || '').replace(/\D/g, '');
   const waUrl = phone ? `https://wa.me/91${phone.slice(-10)}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -1311,7 +1418,7 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
 });
 
 /* =========================================================
-   FEATURE: SWIPE TO ACTION
+   SWIPE TO ACTION
    ========================================================= */
 function setupSwipeListeners() {
   document.querySelectorAll('.swipe-item-container').forEach(card => {
@@ -1380,14 +1487,14 @@ function renderBillsList() {
 document.getElementById('billSearch').addEventListener('input', renderBillsList);
 
 function billCardHTML(b, showDelete = false) {
-  const sb = b.paymentStatus === 'paid' ? '<span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">✅ भुगतान</span>' : b.paymentStatus === 'credit' ? '<span class="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">⏳ उधार</span>' : '<span class="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">🔶 आंशिक</span>';
+  const sb = b.paymentStatus === 'paid' ? '<span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">पूर्ण भुगतान</span>' : (b.paymentStatus === 'credit' ? '<span class="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">उधार</span>' : '<span class="bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold px-2 py-0.5 rounded-full font-poppins">आंशिक</span>');
   let due = b.paymentStatus === 'credit' ? b.finalAmount : (b.paymentStatus === 'partial' ? Math.max(0, b.finalAmount - (b.paidAmount || 0)) : 0);
 
   return `
   <div class="swipe-item-container shadow-sm border border-gray-100 dark:border-slate-800">
     <div class="swipe-bg-actions bg-slate-100 dark:bg-slate-800 text-slate-500">
-      <span class="text-emerald-600 font-bold">👉 शेयर</span>
-      <span class="text-rose-600 font-bold">डिलीट 👈</span>
+      <span class="text-emerald-600 font-bold flex items-center gap-1"><i class="ri-share-forward-fill"></i> शेयर</span>
+      <span class="text-rose-600 font-bold flex items-center gap-1">डिलीट <i class="ri-delete-bin-fill"></i></span>
     </div>
 
     <div class="swipe-content p-3 sm:p-4 bg-white dark:bg-slate-800 transition-colors">
@@ -1398,17 +1505,23 @@ function billCardHTML(b, showDelete = false) {
             ${sb}
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins mt-0.5">${b.id} • ${formatDate(b.date)}</p>
-          <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1">🏍️ ${escapeHTML(b.bikeModel || '—')}</p>
+          <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1 flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML(b.bikeModel || '—')}</p>
         </div>
         
         <div class="text-right">
           <p class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400 font-poppins">${inr(b.finalAmount)}</p>
           ${due > 0 ? `<p class="text-xs text-rose-600 font-bold font-poppins">बकाया: ${inr(due)}</p>` : ''}
           <div class="flex gap-1 mt-2 justify-end">
-            <button class="view-bill text-xs bg-indigo-100 dark:bg-indigo-900/60 hover:bg-indigo-500 text-indigo-700 dark:text-indigo-300 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.id}">👁️</button>
-            <button class="quick-action-swipe share-bill text-xs bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-500 text-emerald-700 dark:text-emerald-300 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.id}">💬</button>
-            <button class="print-bill text-xs bg-purple-100 dark:bg-purple-900/60 hover:bg-purple-500 text-purple-700 dark:text-purple-300 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.id}">🖨️</button>
-            ${showDelete ? `<button class="del-bill-action del-bill text-xs bg-rose-100 dark:bg-rose-900/60 hover:bg-rose-500 text-rose-700 dark:text-rose-300 hover:text-white px-2 py-1 rounded font-poppins font-bold" data-id="${b.dbId}">🗑</button>` : ''}
+            <button class="view-bill text-xs bg-indigo-100 dark:bg-indigo-900/60 hover:bg-indigo-500 text-indigo-700 dark:text-indigo-300 hover:text-white px-2 py-1 rounded-lg font-poppins font-bold" data-id="${b.id}" title="देखें">
+              <i class="ri-eye-fill"></i>
+            </button>
+            <button class="quick-action-swipe share-bill text-xs bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-500 text-emerald-700 dark:text-emerald-300 hover:text-white px-2 py-1 rounded-lg font-poppins font-bold" data-id="${b.id}" title="शेयर">
+              <i class="ri-whatsapp-fill"></i>
+            </button>
+            <button class="print-bill text-xs bg-purple-100 dark:bg-purple-900/60 hover:bg-purple-500 text-purple-700 dark:text-purple-300 hover:text-white px-2 py-1 rounded-lg font-poppins font-bold" data-id="${b.id}" title="प्रिंट">
+              <i class="ri-printer-fill"></i>
+            </button>
+            ${showDelete ? `<button class="del-bill-action del-bill text-xs bg-rose-100 dark:bg-rose-900/60 hover:bg-rose-500 text-rose-700 dark:text-rose-300 hover:text-white px-2 py-1 rounded-lg font-poppins font-bold" data-id="${b.dbId}" title="हटाएं"><i class="ri-delete-bin-fill"></i></button>` : ''}
           </div>
         </div>
       </div>
@@ -1439,21 +1552,22 @@ function bindBillCardActions() {
 
     let lines = [];
     bill.items.forEach((it, i) => lines.push(`${i + 1}. ${it.description} — ${it.quantity} × ${inr(it.rate)} = ${inr(it.total)}`));
-    const statusEmoji = bill.paymentStatus === 'paid' ? '✅ पूर्ण भुगतान' : bill.paymentStatus === 'credit' ? '⏳ उधार (बकाया)' : '🔶 आंशिक भुगतान';
+    const statusEmoji = bill.paymentStatus === 'paid' ? 'पूर्ण भुगतान' : (bill.paymentStatus === 'credit' ? 'उधार' : 'आंशिक भुगतान');
     const text =
-      `🏍️ *प्रदीप बाइक सर्विस*\n` +
+      `*प्रदीप बाइक सर्विस*\n` +
       `━━━━━━━━━━━━━━━\n` +
-      `🧾 *बिल क्र:* ${bill.id}\n` +
-      `👤 *ग्राहक:* ${bill.customerName}\n` +
-      `🏍️ *गाड़ी:* ${bill.bikeModel || '—'}\n` +
-      `📅 *तारीख:* ${formatDate(bill.date)}\n` +
+      `*बिल क्र:* ${bill.id}\n` +
+      `*ग्राहक:* ${bill.customerName}\n` +
+      `*गाड़ी:* ${bill.bikeModel || '—'}\n` +
+      `*तारीख:* ${formatDate(bill.date)}\n` +
       `━━━━━━━━━━━━━━━\n` +
-      (lines.length ? `*📋 विवरण:*\n${lines.join('\n')}\n` : '') +
+      (lines.length ? `*विवरण:*\n${lines.join('\n')}\n` : '') +
       `━━━━━━━━━━━━━━━\n` +
-      `*${statusEmoji}*\n` +
-      `*💵 देय राशि: ${inr(bill.finalAmount)}*\n` +
-      (amountDue > 0 ? `\n📲 *तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
-      `🙏 धन्यवाद!`;
+      `कुल राशि: ${inr(bill.totalAmount)}\n` +
+      `स्थिति: ${statusEmoji}\n` +
+      `*शुद्ध देय: ${inr(bill.finalAmount)}*\n` +
+      (amountDue > 0 ? `\n*तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
+      `\nधन्यवाद!`;
 
     const phone = (bill.customerMobile || '').replace(/\D/g, '');
     const waUrl = phone ? `https://wa.me/91${phone.slice(-10)}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -1547,13 +1661,17 @@ function renderContacts() {
       <div class="flex justify-between items-start">
         <div class="flex-1 min-w-0">
           <p class="font-bold text-gray-800 dark:text-white font-poppins truncate">${escapeHTML(c.name)}</p>
-          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins mt-0.5">📱 ${escapeHTML(c.mobile || '—')}</p>
-          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins">🏍️ ${escapeHTML(c.bike || '—')}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins mt-0.5 flex items-center gap-1"><i class="ri-phone-fill"></i> ${escapeHTML(c.mobile || '—')}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML(c.bike || '—')}</p>
           ${bal ? `<p class="text-xs font-bold mt-1 font-poppins ${bal > 0 ? 'text-rose-600' : 'text-emerald-600'}">${bal > 0 ? 'बकाया: ' + inr(bal) : 'अधिक: ' + inr(-bal)}</p>` : ''}
         </div>
         <div class="flex flex-col gap-1">
-          <button class="edit-contact text-xs bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-2 py-1 rounded font-poppins" data-id="${c.id}">✏️</button>
-          <button class="del-contact text-xs bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 px-2 py-1 rounded font-poppins" data-id="${c.id}">🗑</button>
+          <button class="edit-contact text-xs bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg font-poppins" data-id="${c.id}" title="संपादित करें">
+            <i class="ri-edit-2-fill"></i>
+          </button>
+          <button class="del-contact text-xs bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 px-2 py-1 rounded-lg font-poppins" data-id="${c.id}" title="हटाएं">
+            <i class="ri-delete-bin-fill"></i>
+          </button>
         </div>
       </div>
     </div>`;
@@ -1614,21 +1732,24 @@ function renderKhata() {
       rows += `<tr class="border-b border-gray-100 dark:border-slate-700"><td class="py-1.5 px-2 text-xs">${formatDate(ev.date)}</td><td class="py-1.5 px-2 text-xs">${escapeHTML(ev.desc)}</td><td class="py-1.5 px-2 text-xs text-right font-bold ${colClr} font-poppins">${sign}${inr(ev.amount)}</td><td class="py-1.5 px-2 text-xs text-right font-poppins font-semibold dark:text-gray-200">${inr(running)}</td></tr>`;
     });
 
-    const bgClass = bal > 0 ? 'from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-slate-800' : bal < 0 ? 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-slate-800' : 'from-gray-50 to-slate-50 dark:from-slate-800 dark:to-slate-800';
-    const balColor = bal > 0 ? 'text-rose-600 dark:text-rose-400' : bal < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300';
-    const balIcon = bal > 0 ? '🔴 बकाया' : bal < 0 ? '🟢 अधिक' : '⚪ बराबर';
+    const bgClass = bal > 0 ? 'from-rose-50 to-orange-50 dark:from-rose-950/40 dark:to-slate-800' : (bal < 0 ? 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-slate-800' : 'from-gray-50 to-slate-50 dark:from-slate-800 dark:to-slate-800');
+    const balColor = bal > 0 ? 'text-rose-600 dark:text-rose-400' : (bal < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300');
+    const balIcon = bal > 0 ? 'बकाया' : (bal < 0 ? 'अधिक' : 'बराबर');
 
     return `
     <div class="border-2 border-gray-100 dark:border-slate-800 rounded-xl overflow-hidden mb-3">
       <div class="flex items-center justify-between p-3 bg-gradient-to-r ${bgClass}">
         <div class="flex-1 min-w-0">
           <p class="font-bold text-gray-800 dark:text-white font-poppins truncate">${escapeHTML(c.name)}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins">📱 ${escapeHTML(c.mobile || '—')}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins flex items-center gap-1"><i class="ri-phone-fill"></i> ${escapeHTML(c.mobile || '—')}</p>
         </div>
         <div class="text-right">
           <p class="text-lg font-extrabold font-poppins ${balColor}">${inr(Math.abs(bal))}</p>
           <p class="text-[10px] font-poppins ${balColor} font-semibold">${balIcon}</p>
-          <button onclick="openPaymentModal('${c.id}')" class="text-xs bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded mt-1 font-poppins font-bold">💰 पेमेंट</button>
+          <button onclick="openPaymentModal('${c.id}')" class="text-xs bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded-lg mt-1 font-poppins font-bold flex items-center gap-1">
+            <i class="ri-hand-coin-fill text-sm"></i>
+            पेमेंट
+          </button>
         </div>
       </div>
       ${rows ? `<div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50 dark:bg-slate-800"><tr><th class="py-1.5 px-2 text-left text-xs font-poppins dark:text-gray-300">तारीख</th><th class="py-1.5 px-2 text-left text-xs font-poppins dark:text-gray-300">विवरण</th><th class="py-1.5 px-2 text-right text-xs font-poppins dark:text-gray-300">राशि</th><th class="py-1.5 px-2 text-right text-xs font-poppins dark:text-gray-300">बकाया</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="text-center text-gray-400 text-xs py-3 font-poppins">कोई लेन-देन नहीं</p>'}
@@ -1681,7 +1802,7 @@ document.getElementById('savePaymentBtn').addEventListener('click', async () => 
   } catch (e) {
     showToast('❌ ' + e.message, 'error');
   } finally {
-    btn.innerHTML = '✅ सेव';
+    btn.innerHTML = 'सेव';
     btn.disabled = false;
   }
 });
@@ -1695,17 +1816,17 @@ function renderAll() {
 }
 
 /* =========================================================
-   PAGE INITIALIZATION (STRICT SECURITY CHECK)
+   INITIALIZATION & STRICT AUTH CHECK
    ========================================================= */
 initSupabase();
 
-// ✅ केवल तब अंदर जाएगा जब मास्टर पिन "1234" मैच करेगा
+// सख्त पिन सत्यापन - केवल MASTER_PIN (1234) होने पर ही खुलेगा[span_2](start_span)[span_2](end_span)
 if (AUTH.pin === MASTER_PIN && AUTH.name) {
   document.getElementById('ownerName').value = AUTH.name;
   document.getElementById('ownerPin').value = AUTH.pin;
   enterApp();
 } else {
-  AUTH.clear(); // गलत या अधूरा डेटा तुरंत डिलीट करें
+  AUTH.clear();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   document.getElementById('mainAppHeader').classList.add('hidden');
