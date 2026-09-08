@@ -99,7 +99,7 @@
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
         
-        <!-- PWA Install Button (Shown dynamically) -->
+        <!-- PWA Install Button -->
         <button id="pwaInstallBtn" class="hidden flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-bold text-white shadow-sm animate-bounce" title="App Install Karein">
           <span>📲</span>
           <span class="hidden sm:inline">ऐप इंस्टॉल</span>
@@ -454,11 +454,9 @@ const pwaManifest = {
   ]
 };
 
-// Set Manifest Data URI
 const manifestBlob = new Blob([JSON.stringify(pwaManifest)], { type: 'application/json' });
 document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(manifestBlob));
 
-// Register Lightweight Offline Worker
 if ('serviceWorker' in navigator) {
   const swCode = `
     self.addEventListener('install', e => self.skipWaiting());
@@ -469,7 +467,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
 }
 
-// Handle PWA Install Prompt
 let deferredPrompt;
 const pwaInstallBtn = document.getElementById('pwaInstallBtn');
 
@@ -587,8 +584,12 @@ function getContactBalance(contactId) {
 }
 
 /* =========================================================
-   AUTHENTICATION & PAGE LOCKING
+   AUTHENTICATION & STRICT PIN VERIFICATION
    ========================================================= */
+
+// 🔐 अपनी दुकान का 4 अंकों का सीक्रेट पिन:
+const MASTER_PIN = "9999";
+
 document.getElementById('ownerPin').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
@@ -597,11 +598,21 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   const name = document.getElementById('ownerName').value.trim() || 'Pradeep';
   const pin = document.getElementById('ownerPin').value.trim();
 
+  // 1. लंबाई की जाँच
   if (pin.length !== 4) {
-    showToast('कृपया 4 अंकों का पिन दर्ज करें!', 'warning');
+    showToast('⚠️ कृपया 4 अंकों का पूरा पिन दर्ज करें!', 'warning');
     return;
   }
 
+  // 2. पिन मैचिंग जांच
+  if (pin !== MASTER_PIN) {
+    showToast('❌ गलत PIN! कृपया सही पिन डालें।', 'error', 3000);
+    document.getElementById('ownerPin').value = '';
+    document.getElementById('ownerPin').focus();
+    return;
+  }
+
+  // 3. सही पिन होने पर डेटाबेस से कनेक्ट करें
   const btn = document.getElementById('loginBtn');
   const origText = btn.innerHTML;
   btn.innerHTML = '<span class="loading-spinner"></span> Connecting...';
@@ -1527,15 +1538,17 @@ function renderAll() {
 }
 
 /* =========================================================
-   PAGE INITIALIZATION
+   PAGE INITIALIZATION (CHECK STRICT AUTH)
    ========================================================= */
 initSupabase();
 
-if (AUTH.pin && AUTH.name) {
+// केवल तभी ऑटो-लॉगिन होगा जब सेव किया गया पिन MASTER_PIN ("1234") के बराबर हो
+if (AUTH.pin === MASTER_PIN && AUTH.name) {
   document.getElementById('ownerName').value = AUTH.name;
   document.getElementById('ownerPin').value = AUTH.pin;
   enterApp();
 } else {
+  AUTH.clear(); // पुराना अमान्य पिन साफ़ करें
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   document.getElementById('mainAppHeader').classList.add('hidden');
