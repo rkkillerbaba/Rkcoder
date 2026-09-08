@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>प्रदीप बाइक सर्विस - Cloud Billing</title>
 
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="प्रदीप बाइक" />
+  
+  <!-- Inlined Web App Manifest via Data URI -->
+  <link rel="manifest" id="manifestLink" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -29,7 +38,6 @@
     .tab-btn { transition: all .2s ease; }
     .tab-btn.active { background: white; color: var(--c-primary); box-shadow: 0 4px 12px rgba(79,70,229,.2); }
     
-    /* पेज विजिबिलिटी कंट्रोल */
     .page { display: none !important; }
     .page.active { display: block !important; animation: fadeIn .3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -65,7 +73,7 @@
 <!-- PRINT AREA -->
 <div id="printableArea" class="hidden"></div>
 
-<!-- ==================== APP HEADER (LOCKED UNTIL LOGIN) ==================== -->
+<!-- ==================== APP HEADER ==================== -->
 <header id="mainAppHeader" class="shop-header text-white shadow-xl sticky top-0 z-40 hidden">
   <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5">
     
@@ -90,6 +98,13 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
+        
+        <!-- PWA Install Button (Shown dynamically) -->
+        <button id="pwaInstallBtn" class="hidden flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-bold text-white shadow-sm animate-bounce" title="App Install Karein">
+          <span>📲</span>
+          <span class="hidden sm:inline">ऐप इंस्टॉल</span>
+        </button>
+
         <button id="syncBtn" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="डेटा सिंक करें">
           <span>🔄</span>
           <span class="hidden sm:inline">Sync</span>
@@ -404,6 +419,83 @@
 
 <script>
 /* =========================================================
+   PWA & SERVICE WORKER SETUP (INLINE DATA URI)
+   ========================================================= */
+const appIconSvg = encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1e3a8a"/>
+        <stop offset="50%" stop-color="#2563eb"/>
+        <stop offset="100%" stop-color="#7c3aed"/>
+      </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+    <text x="50%" y="54%" font-size="240" text-anchor="middle" dominant-baseline="middle">🏍️</text>
+  </svg>
+`);
+
+const pwaManifest = {
+  name: "प्रदीप बाइक सर्विस - Cloud Billing",
+  short_name: "प्रदीप बाइक",
+  description: "Pradeep Bike Service Cloud Billing & Ledger Management",
+  start_url: window.location.href,
+  display: "standalone",
+  orientation: "portrait",
+  background_color: "#1e3a8a",
+  theme_color: "#1e3a8a",
+  icons: [
+    {
+      src: "data:image/svg+xml;charset=utf-8," + appIconSvg,
+      sizes: "192x192 512x512",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }
+  ]
+};
+
+// Set Manifest Data URI
+const manifestBlob = new Blob([JSON.stringify(pwaManifest)], { type: 'application/json' });
+document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+// Register Lightweight Offline Worker
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => clients.claim());
+    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+}
+
+// Handle PWA Install Prompt
+let deferredPrompt;
+const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  pwaInstallBtn.classList.remove('hidden');
+});
+
+pwaInstallBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    pwaInstallBtn.classList.add('hidden');
+    showToast('🎉 ऐप इंस्टॉल हो रहा है!', 'success');
+  }
+  deferredPrompt = null;
+});
+
+window.addEventListener('appinstalled', () => {
+  pwaInstallBtn.classList.add('hidden');
+  showToast('✅ ऐप सफलतापूर्वक इंस्टॉल हो गया!', 'success');
+});
+
+/* =========================================================
    SUPABASE CONFIG
    ========================================================= */
 const SUPABASE_URL = 'https://oyjvbuqcylwdiahkvhfs.supabase.co';
@@ -561,10 +653,7 @@ function logout() {
   AUTH.clear();
   BILLS = []; CONTACTS = []; TRANSACTIONS = [];
   
-  // हेडर छिपाएं
   document.getElementById('mainAppHeader').classList.add('hidden');
-  
-  // सारे पेजों को छिपाएं और सिर्फ लॉगिन दिखाएं
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   
@@ -575,16 +664,10 @@ function logout() {
 document.getElementById('logoutBtn').addEventListener('click', logout);
 
 function enterApp() {
-  // हेडर दिखाएं
   document.getElementById('mainAppHeader').classList.remove('hidden');
-  
-  // सिर्फ डैशबोर्ड को एक्टिव करें
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-dashboard').classList.add('active');
-  
-  // डैशबोर्ड टैब एक्टिव करें
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'dashboard'));
-  
   loadAll();
 }
 
@@ -686,7 +769,7 @@ async function cleanupData() {
     setConnStatus('connected', 'Cloud Connected');
     showToast(`✅ Fixed: ${fixedCount}, Deleted: ${deletedCount}`, 'success', 4000);
   } catch (e) {
-    showToast('❌ ' + e.message, 'error', 5000);
+    showToast('❌ Cleanup failed: ' + e.message, 'error', 5000);
     setConnStatus('connected', 'Cleanup failed');
   }
 }
@@ -1444,17 +1527,15 @@ function renderAll() {
 }
 
 /* =========================================================
-   PAGE INITIALIZATION (CHECK AUTH)
+   PAGE INITIALIZATION
    ========================================================= */
 initSupabase();
 
-// चेक करें कि पहले से लॉगिन है या नहीं
 if (AUTH.pin && AUTH.name) {
   document.getElementById('ownerName').value = AUTH.name;
   document.getElementById('ownerPin').value = AUTH.pin;
-  enterApp(); // ऑटो लॉगिन
+  enterApp();
 } else {
-  // अगर लॉगिन नहीं है तो केवल लॉगिन पेज दिखेगा
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
   document.getElementById('mainAppHeader').classList.add('hidden');
