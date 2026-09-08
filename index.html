@@ -28,9 +28,12 @@
     @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 0 rgba(37,99,235,0); } 50% { text-shadow: 0 0 12px rgba(37,99,235,.4); } }
     .tab-btn { transition: all .2s ease; }
     .tab-btn.active { background: white; color: var(--c-primary); box-shadow: 0 4px 12px rgba(79,70,229,.2); }
-    .page { display: none; animation: fadeIn .3s ease; }
-    .page.active { display: block; }
+    
+    /* पेज विजिबिलिटी कंट्रोल */
+    .page { display: none !important; }
+    .page.active { display: block !important; animation: fadeIn .3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    
     .stat-card { position: relative; overflow: hidden; }
     .stat-card::before { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.15); }
     .modal-enter { animation: modalIn .25s ease-out; }
@@ -47,52 +50,26 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 🖨️ A4 FULL COLOR PRINT STYLES */
     @media print {
-      @page {
-        size: A4 portrait;
-        margin: 8mm;
-      }
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-      body {
-        background: #ffffff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      body * {
-        visibility: hidden !important;
-      }
-      #printableArea, #printableArea * {
-        visibility: visible !important;
-      }
-      #printableArea {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-      }
+      @page { size: A4 portrait; margin: 8mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+      body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
+      body * { visibility: hidden !important; }
+      #printableArea, #printableArea * { visibility: visible !important; }
+      #printableArea { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; }
     }
   </style>
 </head>
 <body class="font-devanagari">
 
-<!-- PRINT AREA (FOR DIRECT PRINT / SAVE PDF) -->
+<!-- PRINT AREA -->
 <div id="printableArea" class="hidden"></div>
 
-<!-- ==================== RESPONSIVE HEADER ==================== -->
-<header class="shop-header text-white shadow-xl sticky top-0 z-40">
+<!-- ==================== APP HEADER (LOCKED UNTIL LOGIN) ==================== -->
+<header id="mainAppHeader" class="shop-header text-white shadow-xl sticky top-0 z-40 hidden">
   <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5">
     
-    <!-- Top Row: Branding & Quick Action Buttons -->
     <div class="flex items-center justify-between gap-2">
-      
       <!-- Brand Logo & Shop Name -->
       <div class="flex items-center gap-2 min-w-0">
         <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center ring-2 ring-white/30 text-xl shrink-0 shadow-inner">
@@ -113,14 +90,11 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
-        
-        <!-- Sync Button -->
         <button id="syncBtn" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="डेटा सिंक करें">
           <span>🔄</span>
           <span class="hidden sm:inline">Sync</span>
         </button>
 
-        <!-- Tools Dropdown (Fix & Nuclear) -->
         <div class="relative">
           <button id="toolsToggleBtn" onclick="toggleToolsMenu()" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="सिस्टम टूल्स">
             <span>⚙️</span>
@@ -138,16 +112,14 @@
           </div>
         </div>
 
-        <!-- Logout Button -->
         <button id="logoutBtn" class="flex items-center gap-1 bg-rose-500/80 hover:bg-rose-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold text-white shadow-sm" title="लॉगआउट">
           <span>🚪</span>
           <span class="hidden sm:inline">Logout</span>
         </button>
       </div>
-
     </div>
 
-    <!-- Bottom Row: Navigation Tabs -->
+    <!-- Navigation Tabs -->
     <nav class="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar py-0.5" aria-label="Tabs">
       <button class="tab-btn active flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="dashboard">
         📊 डैशबोर्ड
@@ -171,35 +143,35 @@
 
 <div class="max-w-6xl mx-auto p-3 sm:p-6">
 
-  <!-- LOGIN -->
+  <!-- ============================ PAGE: LOGIN ============================ -->
   <div id="page-login" class="page active">
-    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mt-6">
+    <div class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-8 mt-6 sm:mt-12 border border-slate-100">
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-3 text-4xl">🏍️</div>
-        <h1 class="text-2xl font-extrabold font-poppins text-gray-800">प्रदीप बाइक सर्विस</h1>
-        <p class="text-xs text-gray-500 font-poppins">Pradeep Bike Service • Cloud Billing</p>
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-3 text-4xl shadow-lg">🏍️</div>
+        <h1 class="text-2xl font-black font-poppins text-gray-800">प्रदीप बाइक सर्विस</h1>
+        <p class="text-xs text-gray-500 font-poppins mt-0.5">Pradeep Bike Service • Cloud Billing</p>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="text-sm font-semibold text-gray-700 font-poppins">Owner Name</label>
-          <input type="text" id="ownerName" class="w-full mt-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari" placeholder="Pradeep">
+          <label class="text-xs font-bold text-gray-600 uppercase font-poppins tracking-wider">Owner Name</label>
+          <input type="text" id="ownerName" class="w-full mt-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" placeholder="Pradeep Vishwakarma">
         </div>
         <div>
-          <label class="text-sm font-semibold text-gray-700 font-poppins">PIN (4 digits)</label>
-          <input type="password" id="ownerPin" maxlength="4" class="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-poppins text-2xl font-bold text-center tracking-widest" placeholder="• • • •">
+          <label class="text-xs font-bold text-gray-600 uppercase font-poppins tracking-wider">PIN (4 digits)</label>
+          <input type="password" id="ownerPin" maxlength="4" class="w-full mt-1 px-3 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 input-glow font-poppins text-2xl font-bold text-center tracking-widest" placeholder="• • • •">
         </div>
-        <button id="loginBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-xl font-poppins shadow-lg flex items-center justify-center gap-2">
+        <button id="loginBtn" class="btn-shine w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 rounded-xl font-poppins shadow-lg flex items-center justify-center gap-2 transition active:scale-95">
           <span>🔐</span> Login / Start
         </button>
-        <button id="testConnBtn" type="button" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl font-poppins text-sm">
+        <button id="testConnBtn" type="button" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-semibold py-2.5 rounded-xl font-poppins text-xs border border-gray-200 transition">
           🔧 Connection Test
         </button>
-        <div id="testResult" class="hidden text-xs font-poppins p-3 rounded"></div>
+        <div id="testResult" class="hidden text-xs font-poppins p-3 rounded-xl border"></div>
       </div>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- ============================ PAGE: DASHBOARD ============================ -->
   <div id="page-dashboard" class="page">
     <h2 class="text-2xl font-bold font-poppins text-gray-800 mb-4">📊 डैशबोर्ड</h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -235,7 +207,7 @@
     <div id="recentBills" class="space-y-2"><p class="text-gray-500 text-sm text-center py-6">कोई बिल नहीं मिला</p></div>
   </div>
 
-  <!-- NEW BILL -->
+  <!-- ============================ PAGE: NEW BILL ============================ -->
   <div id="page-bill" class="page">
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
       <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
@@ -330,7 +302,7 @@
     </div>
   </div>
 
-  <!-- BILLS LIST -->
+  <!-- ============================ PAGE: BILLS LIST ============================ -->
   <div id="page-bills" class="page">
     <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -350,7 +322,7 @@
     </div>
   </div>
 
-  <!-- CONTACTS -->
+  <!-- ============================ PAGE: CONTACTS ============================ -->
   <div id="page-contacts" class="page">
     <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -362,7 +334,7 @@
     </div>
   </div>
 
-  <!-- KHATA -->
+  <!-- ============================ PAGE: KHATA ============================ -->
   <div id="page-khata" class="page">
     <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
       <h2 class="text-xl sm:text-2xl font-bold font-poppins text-gray-800 mb-4">💼 खाता बही</h2>
@@ -452,6 +424,7 @@ const AUTH = {
 function setConnStatus(state, text) {
   const dot = document.getElementById('connDot');
   const txt = document.getElementById('connStatusText');
+  if (!dot || !txt) return;
   if (state === 'connected') {
     dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400';
   } else if (state === 'syncing') {
@@ -465,7 +438,7 @@ function setConnStatus(state, text) {
 function initSupabase() {
   try {
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-      throw new Error('Supabase load nahi hua.');
+      throw new Error('Supabase लोड नहीं हो पाया।');
     }
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     return true;
@@ -475,9 +448,6 @@ function initSupabase() {
   }
 }
 
-/* =========================================================
-   HEADER TOOLS MENU TOGGLE
-   ========================================================= */
 function toggleToolsMenu() {
   const menu = document.getElementById('toolsMenu');
   if (menu) menu.classList.toggle('hidden');
@@ -525,15 +495,20 @@ function getContactBalance(contactId) {
 }
 
 /* =========================================================
-   LOGIN
+   AUTHENTICATION & PAGE LOCKING
    ========================================================= */
 document.getElementById('ownerPin').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
-  const name = document.getElementById('ownerName').value.trim() || 'Owner';
-  const pin = document.getElementById('ownerPin').value.trim() || '0000';
+  const name = document.getElementById('ownerName').value.trim() || 'Pradeep';
+  const pin = document.getElementById('ownerPin').value.trim();
+
+  if (pin.length !== 4) {
+    showToast('कृपया 4 अंकों का पिन दर्ज करें!', 'warning');
+    return;
+  }
 
   const btn = document.getElementById('loginBtn');
   const origText = btn.innerHTML;
@@ -542,64 +517,95 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
   try {
     if (!supabaseClient) initSupabase();
-    if (!supabaseClient) throw new Error('Supabase init failed');
+    if (!supabaseClient) throw new Error('Supabase इनिशियलाइज़ नहीं हुआ');
 
     const { error } = await supabaseClient.from('contacts').select('id').limit(1);
-    if (error) {
-      if (error.code === '42P01') throw new Error('❌ Tables nahi bani! Supabase SQL Editor mein run karein.');
-      throw new Error('DB Error: ' + error.message);
-    }
+    if (error) throw new Error('DB Connection Error: ' + error.message);
 
     AUTH.pin = pin;
     AUTH.name = name;
-    showToast('🎉 Welcome ' + name + '!', 'success');
+    showToast('🎉 स्वागत है ' + name + '!', 'success');
     enterApp();
   } catch (e) {
     showToast('❌ ' + e.message, 'error', 5000);
     const testEl = document.getElementById('testResult');
-    testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+    testEl.className = 'text-xs font-poppins p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200';
     testEl.textContent = '❌ Error: ' + e.message;
     testEl.classList.remove('hidden');
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
   }
-  btn.innerHTML = origText;
-  btn.disabled = false;
 });
 
 document.getElementById('testConnBtn').addEventListener('click', async () => {
   const testEl = document.getElementById('testResult');
-  testEl.className = 'text-xs font-poppins p-3 rounded bg-blue-50 text-blue-700 border border-blue-200';
-  testEl.textContent = '⏳ Testing...';
+  testEl.className = 'text-xs font-poppins p-3 rounded-xl bg-blue-50 text-blue-700 border border-blue-200';
+  testEl.textContent = '⏳ टेस्टिंग कनेक्शन...';
   testEl.classList.remove('hidden');
 
   try {
     if (!supabaseClient) initSupabase();
     const { error } = await supabaseClient.from('contacts').select('id').limit(1);
     if (error) throw error;
-    testEl.className = 'text-xs font-poppins p-3 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
-    testEl.textContent = '✅ Connection OK! Database se connect ho gaye.';
+    testEl.className = 'text-xs font-poppins p-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200';
+    testEl.textContent = '✅ कनेक्शन OK! डेटाबेस सफलतापूर्वक कनेक्टेड है।';
   } catch (e) {
-    testEl.className = 'text-xs font-poppins p-3 rounded bg-rose-50 text-rose-700 border border-rose-200';
+    testEl.className = 'text-xs font-poppins p-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200';
     testEl.textContent = '❌ ' + e.message;
   }
 });
 
 function logout() {
-  if (!confirm('Logout?')) return;
+  if (!confirm('लॉगआउट करना चाहते हैं?')) return;
   AUTH.clear();
   BILLS = []; CONTACTS = []; TRANSACTIONS = [];
+  
+  // हेडर छिपाएं
+  document.getElementById('mainAppHeader').classList.add('hidden');
+  
+  // सारे पेजों को छिपाएं और सिर्फ लॉगिन दिखाएं
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-login').classList.add('active');
-  document.getElementById('ownerName').value = '';
+  
   document.getElementById('ownerPin').value = '';
   setConnStatus('disconnected', 'Logged out');
+  showToast('सफलतापूर्वक लॉगआउट!', 'info');
 }
 document.getElementById('logoutBtn').addEventListener('click', logout);
 
 function enterApp() {
+  // हेडर दिखाएं
+  document.getElementById('mainAppHeader').classList.remove('hidden');
+  
+  // सिर्फ डैशबोर्ड को एक्टिव करें
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-dashboard').classList.add('active');
+  
+  // डैशबोर्ड टैब एक्टिव करें
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'dashboard'));
+  
   loadAll();
 }
+
+/* =========================================================
+   TAB SWITCH
+   ========================================================= */
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.page').forEach(p => {
+    if (p.id !== 'page-login') p.classList.remove('active');
+  });
+  const target = document.getElementById('page-' + name);
+  if (target) target.classList.add('active');
+
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'bills') renderBillsList();
+  if (name === 'contacts') renderContacts();
+  if (name === 'khata') renderKhata();
+}
+window.switchTab = switchTab;
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
 /* =========================================================
    LOAD DATA
@@ -636,7 +642,7 @@ async function loadAll() {
 document.getElementById('syncBtn').addEventListener('click', loadAll);
 
 /* =========================================================
-   CLEANUP SCRIPTS
+   CLEANUP & NUCLEAR
    ========================================================= */
 async function cleanupData() {
   if (!confirm('🧹 Cleanup shuru karein?\n\nYeh galat transactions fix karega.')) return;
@@ -680,16 +686,14 @@ async function cleanupData() {
     setConnStatus('connected', 'Cloud Connected');
     showToast(`✅ Fixed: ${fixedCount}, Deleted: ${deletedCount}`, 'success', 4000);
   } catch (e) {
-    showToast('❌ Cleanup failed: ' + e.message, 'error', 5000);
+    showToast('❌ ' + e.message, 'error', 5000);
     setConnStatus('connected', 'Cleanup failed');
   }
 }
 document.getElementById('cleanupBtn').addEventListener('click', cleanupData);
 
 async function nuclearCleanup() {
-  if (!confirm('☢️ NUCLEAR CLEANUP: Saari transactions delete ho jayengi aur bills se rebuild hongi. Continue?')) return;
-  if (!confirm('⚠️ Are you sure?')) return;
-
+  if (!confirm('☢️ NUCLEAR RESET: Saari transactions delete hongi aur bills se dobara banegi. Sure?')) return;
   setConnStatus('syncing', 'Nuclear cleaning...');
   try {
     const { error: delErr } = await supabaseClient.from('transactions').delete().neq('id', 'never');
@@ -729,26 +733,12 @@ async function nuclearCleanup() {
     await loadAll();
     renderAll();
     setConnStatus('connected', 'Cloud Connected');
-    showToast(`☢️ Complete! Rebuilt ${newTx.length} payments.`, 'success', 5000);
+    showToast(`☢️ Complete! Rebuilt ${newTx.length} transactions.`, 'success', 5000);
   } catch (e) {
     showToast('❌ ' + e.message, 'error', 5000);
   }
 }
 document.getElementById('nuclearBtn').addEventListener('click', nuclearCleanup);
-
-/* =========================================================
-   TAB SWITCH
-   ========================================================= */
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.page').forEach(p => { if (p.id !== 'page-login') p.classList.toggle('active', p.id === 'page-' + name); });
-  if (name === 'dashboard') renderDashboard();
-  if (name === 'bills') renderBillsList();
-  if (name === 'contacts') renderContacts();
-  if (name === 'khata') renderKhata();
-}
-window.switchTab = switchTab;
-document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
 /* =========================================================
    BILL FORM
@@ -770,7 +760,7 @@ function addItemRow(item) {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td class="px-2 sm:px-3 py-2">
-      <input type="text" class="w-full px-2 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" value="${escapeHTML(s.description)}" placeholder="विवरण (उदा. क्लच वायर)">
+      <input type="text" class="w-full px-2 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" value="${escapeHTML(s.description)}" placeholder="विवरण">
     </td>
     <td class="px-1.5 py-2">
       <input type="number" class="w-full px-1.5 py-1.5 border-2 border-gray-200 rounded-lg text-center focus:outline-none focus:border-indigo-500 input-glow font-poppins font-bold text-sm qty-input" value="${s.quantity}" min="1">
@@ -893,7 +883,7 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
 });
 
 /* =========================================================
-   INVOICE HTML BUILDER (RESPONSIVE HEADER & A4 COMPLIANT)
+   INVOICE TEMPLATE
    ========================================================= */
 function buildInvoiceHTML(bill) {
   let rowsHTML = '';
@@ -926,13 +916,10 @@ function buildInvoiceHTML(bill) {
 
   return `
   <div style="width: 100%; max-width: 760px; margin: 0 auto; padding: 16px; color: #0f172a; background: #ffffff; font-family: 'Noto Sans Devanagari', sans-serif; box-sizing: border-box;">
-    
-    <!-- RESPONSIVE HEADER -->
     <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #7c3aed 100%); color: #ffffff; padding: 18px 16px; border-radius: 12px; margin-bottom: 14px; text-align: center; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);">
       <div style="font-size: 32px; line-height: 1; margin-bottom: 4px;">🏍️</div>
       <h1 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif;">प्रदीप बाइक सर्विस</h1>
       <p style="margin: 3px 0 0 0; font-size: 12px; font-weight: 500; opacity: 0.95; font-family: 'Poppins', sans-serif;">Pradeep Bike Service • All Two Wheeler Specialist</p>
-      
       <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.25); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; font-size: 12px; font-family: 'Poppins', sans-serif; opacity: 0.95;">
         <span>📞 +91 9876543210</span>
         <span style="opacity: 0.6;">•</span>
@@ -940,7 +927,6 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- META STRIP -->
     <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px;">
       <div>
         <span style="color: #64748b; font-size: 11px; font-weight: 600;">बिल नंबर / NO:</span>
@@ -952,7 +938,6 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- CUSTOMER & BIKE CARD -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 14px;">
       <div style="background: #ffffff; border: 1.5px solid #e0e7ff; padding: 10px 14px; border-radius: 8px;">
         <div style="font-size: 10px; color: #6366f1; font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">ग्राहक विवरण (Customer Info)</div>
@@ -966,7 +951,6 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- ITEMS TABLE -->
     <div style="overflow-x: auto; margin-bottom: 14px;">
       <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; min-width: 320px;">
         <thead>
@@ -984,9 +968,8 @@ function buildInvoiceHTML(bill) {
       </table>
     </div>
 
-    <!-- TOTALS & SUMMARY SECTION -->
     <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-      <div style="width: 100%; max-width: 300px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+      <div style="width: 100%; max-width: 300px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px;">
         <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
           <tr>
             <td style="padding: 3px 0; color: #475569;">कुल योग (Sub Total):</td>
@@ -1015,7 +998,6 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- TERMS & SIGNATURE -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 12px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #64748b;">
       <div>
         <p style="margin: 0; font-weight: 700; color: #334155;">📌 नियम व शर्तें:</p>
@@ -1461,12 +1443,21 @@ function renderAll() {
   refreshCustomerDatalist();
 }
 
+/* =========================================================
+   PAGE INITIALIZATION (CHECK AUTH)
+   ========================================================= */
 initSupabase();
-setConnStatus('syncing', 'Ready');
 
+// चेक करें कि पहले से लॉगिन है या नहीं
 if (AUTH.pin && AUTH.name) {
   document.getElementById('ownerName').value = AUTH.name;
   document.getElementById('ownerPin').value = AUTH.pin;
+  enterApp(); // ऑटो लॉगिन
+} else {
+  // अगर लॉगिन नहीं है तो केवल लॉगिन पेज दिखेगा
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-login').classList.add('active');
+  document.getElementById('mainAppHeader').classList.add('hidden');
 }
 </script>
 </body>
