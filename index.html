@@ -252,7 +252,7 @@
           </div>
           <div class="card-lift p-3 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100">
             <label class="flex items-center gap-2 text-sm font-semibold text-orange-700 font-poppins mb-1"><span class="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center text-xs">📱</span>मोबाइल</label>
-            <input type="tel" id="customerMobile" class="w-full px-3 py-2 border-2 border-orange-200 rounded-lg focus:outline-none focus:border-orange-500 input-glow font-devanagari bg-white" placeholder="9876543210">
+            <input type="tel" id="customerMobile" class="w-full px-3 py-2 border-2 border-orange-200 rounded-lg focus:outline-none focus:border-orange-500 input-glow font-devanagari bg-white" placeholder="7909511752">
           </div>
         </div>
 
@@ -1015,7 +1015,7 @@ function buildInvoiceHTML(bill) {
       <h1 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif;">प्रदीप बाइक सर्विस</h1>
       <p style="margin: 3px 0 0 0; font-size: 12px; font-weight: 500; opacity: 0.95; font-family: 'Poppins', sans-serif;">Pradeep Bike Service • All Two Wheeler Specialist</p>
       <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.25); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; font-size: 12px; font-family: 'Poppins', sans-serif; opacity: 0.95;">
-        <span>📞 +91 9876543210</span>
+        <span>📞 +91 7909511752</span>
         <span style="opacity: 0.6;">•</span>
         <span>✉️ pradeepbikeservice@gmail.com</span>
       </div>
@@ -1214,7 +1214,7 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
     (b.paymentStatus === 'credit' ? `\n⏳ *कृपया जल्द भुगतान करें*` : '') +
     (b.paymentStatus === 'partial' ? `\n🔶 *जमा:* ${inr(b.paidAmount)} | *बकाया:* ${inr(b.finalAmount - b.paidAmount)}` : '') +
     `\n━━━━━━━━━━━━━━━\n` +
-    `📞 +91 9876543210\n` +
+    `📞+91 7909511752\n` +
     `🙏 धन्यवाद!`;
 
   const phone = (b.customerMobile || '').replace(/\D/g, '');
