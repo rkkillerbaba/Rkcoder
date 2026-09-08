@@ -43,12 +43,11 @@
     .toast.warning { background: linear-gradient(135deg, #ea580c, #d97706); }
     .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .conn-pill { position: fixed; top: 4px; right: 4px; z-index: 200; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(8px); }
-    .conn-pill.connected { background: rgba(34,197,94,.9); color: white; }
-    .conn-pill.disconnected { background: rgba(239,68,68,.9); color: white; }
-    .conn-pill.syncing { background: rgba(234,179,8,.9); color: white; }
 
-    /* 🖨️ FULL COLOR A4 PRINT STYLES */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 🖨️ A4 FULL COLOR PRINT STYLES */
     @media print {
       @page {
         size: A4 portrait;
@@ -84,39 +83,91 @@
 </head>
 <body class="font-devanagari">
 
-<!-- PRINT AREA -->
+<!-- PRINT AREA (FOR DIRECT PRINT / SAVE PDF) -->
 <div id="printableArea" class="hidden"></div>
 
-<div id="connPill" class="conn-pill disconnected">
-  <span class="dot" style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block;"></span>
-  <span id="connText">Connecting...</span>
-</div>
-
-<!-- HEADER -->
-<div class="shop-header text-white shadow-2xl sticky top-0 z-40">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-2 ring-white/30 text-2xl">🏍️</div>
-      <div>
-        <h1 class="text-lg sm:text-xl font-extrabold font-poppins leading-tight">प्रदीप बाइक सर्विस</h1>
-        <p class="text-[10px] sm:text-xs opacity-90 font-poppins">Pradeep Bike Service • Cloud Billing</p>
+<!-- ==================== RESPONSIVE HEADER ==================== -->
+<header class="shop-header text-white shadow-xl sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5">
+    
+    <!-- Top Row: Branding & Quick Action Buttons -->
+    <div class="flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo & Shop Name -->
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center ring-2 ring-white/30 text-xl shrink-0 shadow-inner">
+          🏍️
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-black tracking-tight leading-tight truncate font-poppins">
+            प्रदीप बाइक सर्विस
+          </h1>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span id="connDot" class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <p id="connStatusText" class="text-[10px] sm:text-xs text-blue-100 font-poppins truncate">
+              Connecting...
+            </p>
+          </div>
+        </div>
       </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        
+        <!-- Sync Button -->
+        <button id="syncBtn" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="डेटा सिंक करें">
+          <span>🔄</span>
+          <span class="hidden sm:inline">Sync</span>
+        </button>
+
+        <!-- Tools Dropdown (Fix & Nuclear) -->
+        <div class="relative">
+          <button id="toolsToggleBtn" onclick="toggleToolsMenu()" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold border border-white/20 shadow-sm" title="सिस्टम टूल्स">
+            <span>⚙️</span>
+            <span class="hidden sm:inline">टूल्स</span>
+            <span class="text-[10px] opacity-75">▼</span>
+          </button>
+          
+          <div id="toolsMenu" class="hidden absolute right-0 mt-2 w-44 bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-2xl border border-white/10 p-1.5 z-50 text-xs font-poppins">
+            <button id="cleanupBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-amber-500/20 text-amber-300 rounded-lg font-medium transition text-left">
+              <span>🧹</span> Fix Ledger
+            </button>
+            <button id="nuclearBtn" onclick="toggleToolsMenu()" class="w-full flex items-center gap-2 px-2.5 py-2 hover:bg-rose-500/20 text-rose-300 rounded-lg font-medium transition text-left mt-0.5">
+              <span>☢️</span> Nuclear Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button id="logoutBtn" class="flex items-center gap-1 bg-rose-500/80 hover:bg-rose-600 active:scale-95 transition px-2.5 py-1.5 rounded-lg font-poppins text-xs font-semibold text-white shadow-sm" title="लॉगआउट">
+          <span>🚪</span>
+          <span class="hidden sm:inline">Logout</span>
+        </button>
+      </div>
+
     </div>
-    <div class="flex items-center gap-2">
-      <button id="syncBtn" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded font-poppins text-xs font-bold">🔄 Sync</button>
-      <button id="cleanupBtn" class="bg-amber-500/80 hover:bg-amber-600 px-3 py-1.5 rounded font-poppins text-xs font-bold" title="Fix transactions">🧹 Fix</button>
-      <button id="nuclearBtn" class="bg-rose-600/90 hover:bg-rose-700 px-3 py-1.5 rounded font-poppins text-xs font-bold" title="Rebuild from bills">☢️ Nuclear</button>
-      <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded font-poppins text-xs font-bold">🚪 Logout</button>
-    </div>
+
+    <!-- Bottom Row: Navigation Tabs -->
+    <nav class="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar py-0.5" aria-label="Tabs">
+      <button class="tab-btn active flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="dashboard">
+        📊 डैशबोर्ड
+      </button>
+      <button class="tab-btn flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="bill">
+        🧾 नया बिल
+      </button>
+      <button class="tab-btn flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="bills">
+        📋 बिल्स
+      </button>
+      <button class="tab-btn flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="contacts">
+        👥 कस्टमर
+      </button>
+      <button class="tab-btn flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-poppins font-bold text-xs text-white/80 hover:text-white hover:bg-white/10 text-center transition whitespace-nowrap" data-tab="khata">
+        💼 खाता बही
+      </button>
+    </nav>
+
   </div>
-  <div class="max-w-6xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
-    <button class="tab-btn active flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="dashboard">📊 डैशबोर्ड</button>
-    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="bill">🧾 नया बिल</button>
-    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="bills">📋 बिल्स</button>
-    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="contacts">👥 कस्टमर</button>
-    <button class="tab-btn flex-1 min-w-fit px-3 py-2 rounded-xl font-poppins font-semibold text-xs sm:text-sm text-white/80 hover:text-white hover:bg-white/10" data-tab="khata">💼 खाता बही</button>
-  </div>
-</div>
+</header>
 
 <div class="max-w-6xl mx-auto p-3 sm:p-6">
 
@@ -399,9 +450,16 @@ const AUTH = {
 };
 
 function setConnStatus(state, text) {
-  const el = document.getElementById('connPill');
-  el.className = 'conn-pill ' + state;
-  document.getElementById('connText').textContent = text;
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connStatusText');
+  if (state === 'connected') {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400';
+  } else if (state === 'syncing') {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+  } else {
+    dot.className = 'inline-block w-2 h-2 rounded-full bg-rose-400';
+  }
+  txt.textContent = text;
 }
 
 function initSupabase() {
@@ -416,6 +474,22 @@ function initSupabase() {
     return false;
   }
 }
+
+/* =========================================================
+   HEADER TOOLS MENU TOGGLE
+   ========================================================= */
+function toggleToolsMenu() {
+  const menu = document.getElementById('toolsMenu');
+  if (menu) menu.classList.toggle('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  const btn = document.getElementById('toolsToggleBtn');
+  const menu = document.getElementById('toolsMenu');
+  if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.add('hidden');
+  }
+});
 
 /* =========================================================
    UTILS
@@ -551,7 +625,7 @@ async function loadAll() {
       date: tx.date,
       note: tx.note
     }));
-    setConnStatus('connected', '☁️ Cloud Connected');
+    setConnStatus('connected', 'Cloud Connected');
     renderAll();
   } catch (e) {
     console.error(e);
@@ -566,7 +640,7 @@ document.getElementById('syncBtn').addEventListener('click', loadAll);
    ========================================================= */
 async function cleanupData() {
   if (!confirm('🧹 Cleanup shuru karein?\n\nYeh galat transactions fix karega.')) return;
-  setConnStatus('syncing', '🧹 Cleaning...');
+  setConnStatus('syncing', 'Cleaning...');
   try {
     const { data: bills, error: bErr } = await supabaseClient.from('bills').select('*');
     const { data: tx, error: tErr } = await supabaseClient.from('transactions').select('*');
@@ -603,7 +677,7 @@ async function cleanupData() {
 
     await loadAll();
     renderAll();
-    setConnStatus('connected', '☁️ Clean!');
+    setConnStatus('connected', 'Cloud Connected');
     showToast(`✅ Fixed: ${fixedCount}, Deleted: ${deletedCount}`, 'success', 4000);
   } catch (e) {
     showToast('❌ Cleanup failed: ' + e.message, 'error', 5000);
@@ -616,7 +690,7 @@ async function nuclearCleanup() {
   if (!confirm('☢️ NUCLEAR CLEANUP: Saari transactions delete ho jayengi aur bills se rebuild hongi. Continue?')) return;
   if (!confirm('⚠️ Are you sure?')) return;
 
-  setConnStatus('syncing', '☢️ Nuclear cleaning...');
+  setConnStatus('syncing', 'Nuclear cleaning...');
   try {
     const { error: delErr } = await supabaseClient.from('transactions').delete().neq('id', 'never');
     if (delErr) throw delErr;
@@ -654,7 +728,7 @@ async function nuclearCleanup() {
 
     await loadAll();
     renderAll();
-    setConnStatus('connected', '☁️ Nuclear clean!');
+    setConnStatus('connected', 'Cloud Connected');
     showToast(`☢️ Complete! Rebuilt ${newTx.length} payments.`, 'success', 5000);
   } catch (e) {
     showToast('❌ ' + e.message, 'error', 5000);
@@ -677,7 +751,7 @@ window.switchTab = switchTab;
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
 /* =========================================================
-   BILL FORM - INPUT BOXES
+   BILL FORM
    ========================================================= */
 const itemsBody = document.getElementById('itemsBody');
 const addRowBtn = document.getElementById('addRowBtn');
@@ -699,7 +773,7 @@ function addItemRow(item) {
       <input type="text" class="w-full px-2 py-1.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 input-glow font-devanagari text-sm" value="${escapeHTML(s.description)}" placeholder="विवरण (उदा. क्लच वायर)">
     </td>
     <td class="px-1.5 py-2">
-      <input type="number" class="w-full px-1 py-1.5 border-2 border-gray-200 rounded-lg text-center focus:outline-none focus:border-indigo-500 input-glow font-poppins font-bold text-sm qty-input" value="${s.quantity}" min="1">
+      <input type="number" class="w-full px-1.5 py-1.5 border-2 border-gray-200 rounded-lg text-center focus:outline-none focus:border-indigo-500 input-glow font-poppins font-bold text-sm qty-input" value="${s.quantity}" min="1">
     </td>
     <td class="px-1.5 py-2">
       <input type="number" class="w-full px-2 py-1.5 border-2 border-indigo-200 rounded-lg text-right focus:outline-none focus:border-indigo-500 input-glow font-poppins font-bold text-sm rate-input" value="${s.rate}" min="0" placeholder="0">
@@ -819,7 +893,7 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
 });
 
 /* =========================================================
-   PREMIUM COLORFUL INVOICE HTML (FIXED HEADER)
+   INVOICE HTML BUILDER (RESPONSIVE HEADER & A4 COMPLIANT)
    ========================================================= */
 function buildInvoiceHTML(bill) {
   let rowsHTML = '';
@@ -853,13 +927,12 @@ function buildInvoiceHTML(bill) {
   return `
   <div style="width: 100%; max-width: 760px; margin: 0 auto; padding: 16px; color: #0f172a; background: #ffffff; font-family: 'Noto Sans Devanagari', sans-serif; box-sizing: border-box;">
     
-    <!-- FIXED RESPONSIVE COLORFUL HEADER -->
+    <!-- RESPONSIVE HEADER -->
     <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #7c3aed 100%); color: #ffffff; padding: 18px 16px; border-radius: 12px; margin-bottom: 14px; text-align: center; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);">
       <div style="font-size: 32px; line-height: 1; margin-bottom: 4px;">🏍️</div>
       <h1 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif;">प्रदीप बाइक सर्विस</h1>
       <p style="margin: 3px 0 0 0; font-size: 12px; font-weight: 500; opacity: 0.95; font-family: 'Poppins', sans-serif;">Pradeep Bike Service • All Two Wheeler Specialist</p>
       
-      <!-- CONTACT STRIP -->
       <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.25); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; font-size: 12px; font-family: 'Poppins', sans-serif; opacity: 0.95;">
         <span>📞 +91 9876543210</span>
         <span style="opacity: 0.6;">•</span>
@@ -893,7 +966,7 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- TABLE -->
+    <!-- ITEMS TABLE -->
     <div style="overflow-x: auto; margin-bottom: 14px;">
       <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; min-width: 320px;">
         <thead>
@@ -1077,7 +1150,7 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
 });
 
 /* =========================================================
-   DASHBOARD / BILLS / KHATA
+   DASHBOARD / BILLS / KHATA RENDERING
    ========================================================= */
 function renderDashboard() {
   document.getElementById('statTotalBills').textContent = BILLS.length;
