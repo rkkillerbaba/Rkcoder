@@ -21,7 +21,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin />
 
   <style>
@@ -531,11 +531,11 @@
 /* =========================================================
    AUTHENTICATION & MASTER PIN LOGIC
    ========================================================= */
-const MASTER_PIN = "9999";
+const MASTER_PIN = "1234";
 const UPI_ID = "7909511752@pthdfc";
 const UPI_PAYEE_NAME = "Pradeep Bike Service";
 
-// Supabase Credentials[span_0](start_span)[span_0](end_span)
+// Supabase Credentials
 const SUPABASE_URL = 'https://oyjvbuqcylwdiahkvhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95anZidXFjeWx3ZGlhaGt2aGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3ODYzMTksImV4cCI6MjEwNDM2MjMxOX0.SRXsLn9uuT0sWX_d_HjLRAbpTX-JqLcAorgJLdjgg2U';
 
@@ -578,7 +578,7 @@ function toggleDarkMode() {
 initTheme();
 
 /* =========================================================
-   SMART BIKE NUMBER MASKING
+   SMART BIKE NUMBER MASKING (UPPERCASE)
    ========================================================= */
 const bikeInput = document.getElementById('bikeModel');
 bikeInput.addEventListener('input', (e) => {
@@ -716,7 +716,7 @@ document.getElementById('ownerPin').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
-// STRICT PIN VERIFICATION[span_1](start_span)[span_1](end_span)
+// STRICT PIN VERIFICATION
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const name = document.getElementById('ownerName').value.trim() || 'Pradeep';
   const pin = document.getElementById('ownerPin').value.trim();
@@ -1024,7 +1024,7 @@ function addItemRow(item) {
       <input type="number" class="w-full px-1.5 py-1.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-center focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm qty-input" value="${s.quantity}" min="1">
     </td>
     <td class="px-1.5 py-2">
-      <input type="number" class="w-full px-2 py-1.5 border-2 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-right focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm rate-input" value="${s.rate}" min="0" placeholder="0">
+      <input type="number" class="w-full px-2 py-1.5 border-2 border-indigo-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white rounded-lg text-right focus:outline-none focus:border-indigo-500 font-poppins font-bold text-sm rate-input" value="${s.rate}" min="0" placeholder="0">
     </td>
     <td class="px-2 sm:px-3 py-2 text-right font-poppins font-bold text-indigo-700 dark:text-indigo-400 text-sm row-total">0.00</td>
     <td class="px-1 py-2 text-center">
@@ -1144,7 +1144,7 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
 });
 
 /* =========================================================
-   FIXED RESPONSIVE LUXURY INVOICE TEMPLATE (NO OVERLAPS)
+   IN-LINE CUSTOMER & VEHICLE LAYOUT INVOICE TEMPLATE
    ========================================================= */
 function buildInvoiceHTML(bill) {
   let rowsHTML = '';
@@ -1152,11 +1152,11 @@ function buildInvoiceHTML(bill) {
   bill.items.forEach(it => {
     rowsHTML += `
       <tr style="border-bottom: 1px solid #cbd5e1;">
-        <td style="padding: 10px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 12px; color: #475569; font-weight: 700; border-right: 1px solid #cbd5e1; background: #f8fafc;">${String(idx++).padStart(2, '0')}</td>
-        <td style="padding: 10px 14px; font-family: 'Noto Sans Devanagari', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.4; border-right: 1px solid #cbd5e1;">${escapeHTML(it.description)}</td>
-        <td style="padding: 10px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${it.quantity}</td>
-        <td style="padding: 10px 12px; text-align: right; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${inr(it.rate)}</td>
-        <td style="padding: 10px 14px; text-align: right; font-weight: 800; font-family: 'Poppins', sans-serif; font-size: 14px; color: #0f172a; background: #fafafa;">${inr(it.total)}</td>
+        <td style="padding: 9px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 12px; color: #475569; font-weight: 700; border-right: 1px solid #cbd5e1; background: #f8fafc;">${String(idx++).padStart(2, '0')}</td>
+        <td style="padding: 9px 12px; font-family: 'Noto Sans Devanagari', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.4; border-right: 1px solid #cbd5e1;">${escapeHTML(it.description)}</td>
+        <td style="padding: 9px 8px; text-align: center; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${it.quantity}</td>
+        <td style="padding: 9px 12px; text-align: right; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${inr(it.rate)}</td>
+        <td style="padding: 9px 12px; text-align: right; font-weight: 800; font-family: 'Poppins', sans-serif; font-size: 14px; color: #0f172a; background: #fafafa;">${inr(it.total)}</td>
       </tr>
     `;
   });
@@ -1173,6 +1173,8 @@ function buildInvoiceHTML(bill) {
   let statusBg = bill.paymentStatus === 'paid' ? '#dcfce7' : (bill.paymentStatus === 'credit' ? '#fee2e2' : '#dbeafe');
   let statusBorder = bill.paymentStatus === 'paid' ? '#86efac' : (bill.paymentStatus === 'credit' ? '#fca5a5' : '#93c5fd');
   let statusText = bill.paymentStatus === 'paid' ? 'PAID (पूर्ण भुगतान)' : (bill.paymentStatus === 'credit' ? 'DUE (उधार बकाया)' : 'PARTIAL (आंशिक भुगतान)');
+
+  const vehicleFormatted = escapeHTML((bill.bikeModel || '—').toUpperCase());
 
   return `
   <div style="width: 100%; max-width: 760px; margin: 0 auto; padding: 20px; color: #0f172a; background: #ffffff; font-family: 'Noto Sans Devanagari', -apple-system, sans-serif; box-sizing: border-box; border: 2px solid #1e3a8a; border-radius: 12px; box-shadow: 0 4px 20px -2px rgba(30, 58, 138, 0.1);">
@@ -1202,23 +1204,28 @@ function buildInvoiceHTML(bill) {
       </div>
     </div>
 
-    <!-- CUSTOMER & VEHICLE DETAILS GRID -->
+    <!-- CUSTOMER & VEHICLE DETAILS GRID (IN-LINE SAME ROW FORMAT) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
       
-      <!-- Billed To -->
-      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff;">
-        <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif; margin-bottom: 2px;">BILLED TO / ग्राहक विवरण</div>
-        <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHTML(bill.customerName)}</div>
-        <div style="font-size: 11px; color: #475569; font-family: 'Poppins', sans-serif;">Mobile: <strong style="color: #0f172a;">${escapeHTML(bill.customerMobile || '—')}</strong></div>
+      <!-- Customer Box with In-line Name -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+        <div style="font-size: 13px; color: #334155; line-height: 1.3;">
+          <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif;">BILLED TO / ग्राहक:</span>
+          <strong style="color: #0f172a; font-size: 15px; margin-left: 6px; font-weight: 800;">${escapeHTML(bill.customerName)}</strong>
+        </div>
+        <div style="font-size: 12px; color: #475569; font-family: 'Poppins', sans-serif;">
+          <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;">Mobile:</span>
+          <strong style="color: #0f172a; margin-left: 4px;">${escapeHTML(bill.customerMobile || '—')}</strong>
+        </div>
       </div>
 
-      <!-- Vehicle Info -->
-      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; display: flex; flex-direction: column; justify-content: space-between;">
-        <div>
-          <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif; margin-bottom: 2px;">VEHICLE NO / गाड़ी नंबर</div>
-          <div style="font-size: 14px; font-weight: 900; color: #0f172a; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">${escapeHTML(bill.bikeModel || '—')}</div>
+      <!-- Vehicle Box with In-line Vehicle Name/No -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+        <div style="font-size: 13px; color: #334155; line-height: 1.3;">
+          <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif;">VEHICLE NO / गाड़ी:</span>
+          <strong style="color: #0f172a; font-size: 14px; margin-left: 6px; font-weight: 900; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">${vehicleFormatted}</strong>
         </div>
-        <div style="margin-top: 4px;">
+        <div>
           <span style="display: inline-block; background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusBorder}; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; font-family: 'Poppins', sans-serif;">
             ${statusText}
           </span>
@@ -1246,7 +1253,7 @@ function buildInvoiceHTML(bill) {
     <!-- TOTALS & UPI QR (STACKED FLEX FOR ZERO OVERFLOW) -->
     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;">
       
-      <!-- CALCULATION SUMMARY TABLE -->
+      <!-- FINANCIAL CALCULATION SUMMARY TABLE -->
       <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #ffffff; width: 100%; box-sizing: border-box;">
         <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
           <tr>
@@ -1274,14 +1281,15 @@ function buildInvoiceHTML(bill) {
         </table>
       </div>
 
-      <!-- UPI QR CODE BLOCK -->
+      <!-- UPI QR CODE BLOCK (HIDDEN IF ALREADY PAID) -->
+      ${amountToPay > 0 ? `
       <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; background: #f8fafc; display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;">
         <img src="${qrCodeUrl}" alt="UPI QR" style="width: 85px; height: 85px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; padding: 2px;" />
         <div>
           <div style="font-size: 11px; font-weight: 900; color: #1e3a8a; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px;">SCAN & PAY VIA UPI</div>
           <div style="font-size: 10px; color: #475569; font-family: 'Poppins', sans-serif; font-weight: 600; margin: 1px 0;">${UPI_ID}</div>
           <div style="font-size: 12px; font-weight: 900; color: #15803d; font-family: 'Poppins', sans-serif;">
-            ${amountToPay > 0 ? inr(amountToPay) : '✅ No Due'}
+            ${inr(amountToPay)}
           </div>
           <div style="display: flex; gap: 4px; margin-top: 4px; align-items: center;">
             <span style="background: #5f259f; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 3px; font-family: Poppins;">PhonePe</span>
@@ -1289,7 +1297,10 @@ function buildInvoiceHTML(bill) {
             <span style="background: #00b9f1; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 3px; font-family: Poppins;">Paytm</span>
           </div>
         </div>
-      </div>
+      </div>` : `
+      <div style="border: 1px solid #86efac; border-radius: 6px; padding: 12px; background: #f0fdf4; text-align: center; width: 100%; box-sizing: border-box;">
+        <div style="font-size: 13px; font-weight: 900; color: #15803d; font-family: 'Poppins', sans-serif;">✅ PAID IN FULL (भुगतान पूर्ण हो चुका है)</div>
+      </div>`}
 
     </div>
 
@@ -1383,6 +1394,7 @@ document.getElementById('detailPrintBtn').addEventListener('click', () => {
   if (activeViewingBill) printBill(activeViewingBill);
 });
 
+// ✅ REFINED WHATSAPP SHARE ACTION (CLICKABLE CLEAN LINK)
 document.getElementById('whatsappBtn').addEventListener('click', () => {
   const b = currentDraft();
   if (!b.customerName || b.customerName === '—') {
@@ -1390,6 +1402,8 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
     return;
   }
   const amountDue = b.paymentStatus === 'partial' ? (b.finalAmount - b.paidAmount) : (b.paymentStatus === 'paid' ? 0 : b.finalAmount);
+  
+  // साफ और छोटा UPI लिंक
   const upiPayLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${amountDue.toFixed(2)}&cu=INR`;
 
   let lines = [];
@@ -1401,7 +1415,7 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
     `━━━━━━━━━━━━━━━\n` +
     `*बिल क्र:* ${b.id}\n` +
     `*ग्राहक:* ${b.customerName}\n` +
-    `*गाड़ी:* ${b.bikeModel || '—'}\n` +
+    `*गाड़ी:* ${(b.bikeModel || '—').toUpperCase()}\n` +
     `*तारीख:* ${formatDate(b.date)}\n` +
     `━━━━━━━━━━━━━━━\n` +
     (lines.length ? `*विवरण:*\n${lines.join('\n')}\n` : '') +
@@ -1409,7 +1423,7 @@ document.getElementById('whatsappBtn').addEventListener('click', () => {
     `कुल राशि: ${inr(b.totalAmount)}\n` +
     `स्थिति: ${statusEmoji}\n` +
     `*शुद्ध देय: ${inr(b.finalAmount)}*\n` +
-    (amountDue > 0 ? `\n*तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
+    (amountDue > 0 ? `\n💳 *ऑनलाइन पेमेंट करने के लिए लिंक पर क्लिक करें:*\n${upiPayLink}\n\n*(या सीधे UPI ID पर भेजें: ${UPI_ID})*\n` : '') +
     `\nधन्यवाद!`;
 
   const phone = (b.customerMobile || '').replace(/\D/g, '');
@@ -1505,7 +1519,7 @@ function billCardHTML(b, showDelete = false) {
             ${sb}
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins mt-0.5">${b.id} • ${formatDate(b.date)}</p>
-          <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1 flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML(b.bikeModel || '—')}</p>
+          <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 mt-1 flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML((b.bikeModel || '—').toUpperCase())}</p>
         </div>
         
         <div class="text-right">
@@ -1558,7 +1572,7 @@ function bindBillCardActions() {
       `━━━━━━━━━━━━━━━\n` +
       `*बिल क्र:* ${bill.id}\n` +
       `*ग्राहक:* ${bill.customerName}\n` +
-      `*गाड़ी:* ${bill.bikeModel || '—'}\n` +
+      `*गाड़ी:* ${(bill.bikeModel || '—').toUpperCase()}\n` +
       `*तारीख:* ${formatDate(bill.date)}\n` +
       `━━━━━━━━━━━━━━━\n` +
       (lines.length ? `*विवरण:*\n${lines.join('\n')}\n` : '') +
@@ -1566,7 +1580,7 @@ function bindBillCardActions() {
       `कुल राशि: ${inr(bill.totalAmount)}\n` +
       `स्थिति: ${statusEmoji}\n` +
       `*शुद्ध देय: ${inr(bill.finalAmount)}*\n` +
-      (amountDue > 0 ? `\n*तुरंत UPI पेमेंट करें:* \n${upiPayLink}\n(UPI ID: ${UPI_ID})\n` : '') +
+      (amountDue > 0 ? `\n*ऑनलाइन पेमेंट करने के लिए लिंक पर क्लिक करें:*\n${upiPayLink}\n\n*(या सीधे UPI ID पर भेजें: ${UPI_ID})*\n` : '') +
       `\nधन्यवाद!`;
 
     const phone = (bill.customerMobile || '').replace(/\D/g, '');
@@ -1599,7 +1613,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
   const rows = [['Bill', 'Date', 'Customer', 'Mobile', 'Bike', 'Total', 'Discount%', 'Final', 'Status', 'Paid', 'Due']];
   BILLS.forEach(b => {
     const d = b.paymentStatus === 'credit' ? b.finalAmount : b.paymentStatus === 'partial' ? b.finalAmount - b.paidAmount : 0;
-    rows.push([b.id, b.date, b.customerName, b.customerMobile || '', b.bikeModel || '', b.totalAmount, b.discountPercent, b.finalAmount, b.paymentStatus, b.paidAmount || 0, d]);
+    rows.push([b.id, b.date, b.customerName, b.customerMobile || '', (b.bikeModel || '').toUpperCase(), b.totalAmount, b.discountPercent, b.finalAmount, b.paymentStatus, b.paidAmount || 0, d]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const link = document.createElement('a');
@@ -1628,7 +1642,7 @@ document.getElementById('saveContactBtn').addEventListener('click', async () => 
   const name = document.getElementById('newContactName').value.trim();
   if (!name) { showToast('नाम भरें!', 'error'); return; }
   const editId = document.getElementById('newContactName').dataset.editId;
-  const payload = { name, mobile: document.getElementById('newContactMobile').value, bike: document.getElementById('newContactBike').value, address: document.getElementById('newContactAddress').value };
+  const payload = { name, mobile: document.getElementById('newContactMobile').value, bike: (document.getElementById('newContactBike').value || '').toUpperCase(), address: document.getElementById('newContactAddress').value };
   try {
     if (editId) {
       const { error } = await supabaseClient.from('contacts').update(payload).eq('id', editId);
@@ -1662,7 +1676,7 @@ function renderContacts() {
         <div class="flex-1 min-w-0">
           <p class="font-bold text-gray-800 dark:text-white font-poppins truncate">${escapeHTML(c.name)}</p>
           <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins mt-0.5 flex items-center gap-1"><i class="ri-phone-fill"></i> ${escapeHTML(c.mobile || '—')}</p>
-          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML(c.bike || '—')}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 font-poppins flex items-center gap-1"><i class="ri-motorbike-fill"></i> ${escapeHTML((c.bike || '—').toUpperCase())}</p>
           ${bal ? `<p class="text-xs font-bold mt-1 font-poppins ${bal > 0 ? 'text-rose-600' : 'text-emerald-600'}">${bal > 0 ? 'बकाया: ' + inr(bal) : 'अधिक: ' + inr(-bal)}</p>` : ''}
         </div>
         <div class="flex flex-col gap-1">
@@ -1678,16 +1692,17 @@ function renderContacts() {
   }).join('') : '<p class="text-gray-500 text-sm text-center py-6 col-span-full">कोई कस्टमर नहीं</p>';
 
   document.querySelectorAll('.edit-contact').forEach(b => b.addEventListener('click', e => {
-    const c = CONTACTS.find(x => x.id === e.currentTarget.dataset.id);
+    const c = CONTACTS.find(x => x.currentTarget.dataset.id || x.dataset.id);
     if (c) openContactModal(c);
   }));
 
   document.querySelectorAll('.del-contact').forEach(b => b.addEventListener('click', async e => {
     if (!confirm('हटाएँ?')) return;
     try {
-      const { error } = await supabaseClient.from('contacts').delete().eq('id', e.currentTarget.dataset.id);
+      const cid = e.currentTarget.dataset.id;
+      const { error } = await supabaseClient.from('contacts').delete().eq('id', cid);
       if (error) throw error;
-      CONTACTS = CONTACTS.filter(x => x.id !== e.currentTarget.dataset.id);
+      CONTACTS = CONTACTS.filter(x => x.id !== cid);
       renderContacts();
       refreshCustomerDatalist();
       showToast('हटा दिया गया', 'info');
@@ -1820,7 +1835,7 @@ function renderAll() {
    ========================================================= */
 initSupabase();
 
-// सख्त पिन सत्यापन - केवल MASTER_PIN (1234) होने पर ही खुलेगा[span_2](start_span)[span_2](end_span)
+// सख्त पिन सत्यापन - केवल MASTER_PIN (1234) होने पर ही खुलेगा
 if (AUTH.pin === MASTER_PIN && AUTH.name) {
   document.getElementById('ownerName').value = AUTH.name;
   document.getElementById('ownerPin').value = AUTH.pin;
