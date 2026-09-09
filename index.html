@@ -63,6 +63,13 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+    /* CUSTOM CONFIRM MODAL */
+    #appConfirmModal { opacity: 0; transition: opacity .2s ease; }
+    #appConfirmModal.confirm-visible { opacity: 1; }
+    #appConfirmModal.confirm-visible #appConfirmCard { transform: scale(1); opacity: 1; }
+    #appConfirmCard { will-change: transform, opacity; }
+    body.confirm-open { overflow: hidden; }
+
     /* SWIPE ACTION CARDS */
     .swipe-item-container { position: relative; overflow: hidden; border-radius: 12px; touch-action: pan-y; }
     .swipe-content { position: relative; z-index: 2; transition: transform 0.2s ease-out; }
@@ -525,6 +532,28 @@
   </div>
 </div>
 
+<!-- CUSTOM CONFIRM MODAL (replaces browser confirm() popups) -->
+<div id="appConfirmModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md hidden items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-labelledby="appConfirmTitle">
+  <div id="appConfirmCard" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl border border-white/60 dark:border-slate-700 overflow-hidden transform scale-95 opacity-0 transition-all duration-200">
+    <div id="appConfirmAccent" class="h-1.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500"></div>
+    <div class="p-5 sm:p-6">
+      <div class="flex items-start gap-4">
+        <div id="appConfirmIconWrap" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
+          <i id="appConfirmIcon" class="ri-question-fill text-2xl"></i>
+        </div>
+        <div class="min-w-0 pt-0.5">
+          <h3 id="appConfirmTitle" class="text-lg font-extrabold font-poppins text-slate-900 dark:text-white">पुष्टि करें</h3>
+          <p id="appConfirmMessage" class="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300 font-devanagari whitespace-pre-line"></p>
+        </div>
+      </div>
+      <div class="flex gap-2.5 mt-6">
+        <button id="appConfirmCancel" type="button" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold font-poppins text-sm transition active:scale-95">रद्द करें</button>
+        <button id="appConfirmOk" type="button" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold font-poppins text-sm shadow-lg shadow-indigo-500/20 transition active:scale-95">हाँ, जारी रखें</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -772,8 +801,8 @@ document.getElementById('testConnBtn').addEventListener('click', async () => {
   }
 });
 
-function logout() {
-  if (!confirm('लॉगआउट करना चाहते हैं?')) return;
+async function logout() {
+  if (!(await showConfirm('लॉगआउट करना चाहते हैं?', { title: 'लॉगआउट की पुष्टि', okText: 'हाँ, लॉगआउट करें' }))) return;
   AUTH.clear();
   document.getElementById('mainAppHeader').classList.add('hidden');
   document.getElementById('bottomNav').classList.add('hidden');
@@ -831,6 +860,87 @@ function todayISO() { return new Date().toISOString().split('T')[0]; }
 function formatDate(iso) { if (!iso) return '—'; try { return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return iso; } }
 function uid() { return 'PBS-' + Date.now().toString().slice(-6); }
 function showToast(msg, type = 'success', duration = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; setTimeout(() => t.classList.remove('show'), duration); }
+
+/* =========================================================
+   BEAUTIFUL APP CONFIRM MODAL
+   ========================================================= */
+let appConfirmResolver = null;
+let appConfirmPreviousFocus = null;
+
+function confirmIconForMessage(message) {
+  const m = String(message || '').toLowerCase();
+  if (m.includes('nuclear') || m.includes('☢️')) return { icon: 'ri-radioactive-fill', from: 'from-rose-500', to: 'to-red-600' };
+  if (m.includes('aggressive') || m.includes('🔥')) return { icon: 'ri-fire-fill', from: 'from-orange-500', to: 'to-amber-500' };
+  if (m.includes('cleanup') || m.includes('🧹')) return { icon: 'ri-magic-fill', from: 'from-amber-400', to: 'to-orange-500' };
+  if (m.includes('हटा') || m.includes('delete') || m.includes('logout') || m.includes('लॉगआउट')) return { icon: 'ri-delete-bin-6-fill', from: 'from-rose-500', to: 'to-pink-600' };
+  return { icon: 'ri-question-fill', from: 'from-indigo-500', to: 'to-purple-600' };
+}
+
+function showConfirm(message, options = {}) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('appConfirmModal');
+    const card = document.getElementById('appConfirmCard');
+    const iconWrap = document.getElementById('appConfirmIconWrap');
+    const icon = document.getElementById('appConfirmIcon');
+    const title = document.getElementById('appConfirmTitle');
+    const msg = document.getElementById('appConfirmMessage');
+    const cancel = document.getElementById('appConfirmCancel');
+    const ok = document.getElementById('appConfirmOk');
+    const accent = document.getElementById('appConfirmAccent');
+
+    if (appConfirmResolver) appConfirmResolver(false);
+    appConfirmResolver = resolve;
+    appConfirmPreviousFocus = document.activeElement;
+
+    const tone = confirmIconForMessage(message);
+    icon.className = tone.icon + ' text-2xl';
+    iconWrap.className = `w-12 h-12 rounded-2xl bg-gradient-to-br ${tone.from} ${tone.to} text-white flex items-center justify-center shrink-0 shadow-lg`;
+    accent.className = `h-1.5 bg-gradient-to-r ${tone.from} ${tone.to}`;
+    title.textContent = options.title || 'पुष्टि करें';
+    msg.textContent = message;
+    cancel.textContent = options.cancelText || 'रद्द करें';
+    ok.textContent = options.okText || 'हाँ, जारी रखें';
+    ok.className = `flex-1 py-3 px-4 rounded-xl bg-gradient-to-r ${tone.from} ${tone.to} hover:brightness-95 text-white font-bold font-poppins text-sm shadow-lg transition active:scale-95`;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('confirm-open');
+    requestAnimationFrame(() => {
+      modal.classList.add('confirm-visible');
+      setTimeout(() => ok.focus(), 40);
+    });
+
+    const finish = value => {
+      if (!appConfirmResolver) return;
+      const r = appConfirmResolver;
+      appConfirmResolver = null;
+      modal.classList.remove('confirm-visible');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('confirm-open');
+        if (appConfirmPreviousFocus && typeof appConfirmPreviousFocus.focus === 'function') appConfirmPreviousFocus.focus();
+        appConfirmPreviousFocus = null;
+      }, 180);
+      r(value);
+    };
+
+    cancel.onclick = () => finish(false);
+    ok.onclick = () => finish(true);
+    modal.onclick = e => { if (e.target === modal && options.allowBackdropClose !== false) finish(false); };
+    card.onclick = e => e.stopPropagation();
+    modal.onkeydown = e => {
+      if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+      if (e.key === 'Enter' && document.activeElement !== cancel) { e.preventDefault(); finish(true); }
+      if (e.key === 'Tab') {
+        const focusables = [cancel, ok];
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+  });
+}
 
 function mapBill(row) {
   return { id: row.bill_number, dbId: row.id, contactId: row.contact_id, customerName: row.customer_name, customerMobile: row.customer_mobile, bikeModel: row.bike_model, date: row.date, items: row.items || [], totalAmount: row.total_amount, discountPercent: row.discount_percent, finalAmount: row.final_amount, paymentStatus: row.payment_status, paidAmount: row.paid_amount };
@@ -979,7 +1089,7 @@ document.getElementById('syncBtn').addEventListener('click', loadAll);
    CLEANUP & MAINTENANCE
    ========================================================= */
 async function cleanupData() {
-  if (!confirm('🧹 Cleanup शुरू करें? यह गलत लेनदेन को सुधारेगा।')) return;
+  if (!(await showConfirm('🧹 Cleanup शुरू करें? यह गलत लेनदेन को सुधारेगा।', { title: 'Ledger Cleanup', okText: 'Cleanup शुरू करें' }))) return;
   setConnStatus('syncing', 'Cleaning...');
   try {
     const { data: bills, error: bErr } = await supabaseClient.from('bills').select('*');
@@ -1027,7 +1137,7 @@ async function cleanupData() {
 document.getElementById('cleanupBtn').addEventListener('click', cleanupData);
 
 async function aggressiveCleanup() {
-  if (!confirm('🔥 Aggressive Cleanup? पुराने automatic bill-payment transactions हटाए जाएंगे, manual payments सुरक्षित रहेंगे।')) return;
+  if (!(await showConfirm('🔥 Aggressive Cleanup? पुराने automatic bill-payment transactions हटाए जाएंगे, manual payments सुरक्षित रहेंगे।', { title: 'Aggressive Cleanup', okText: 'Cleanup करें' }))) return;
   setConnStatus('syncing', 'Aggressive cleaning...');
   try {
     const { data: tx, error: tErr } = await supabaseClient.from('transactions').select('*');
@@ -1053,7 +1163,7 @@ async function aggressiveCleanup() {
 window.aggressiveCleanup = aggressiveCleanup;
 
 async function nuclearCleanup() {
-  if (!confirm('☢️ NUCLEAR RESET: पुराने automatic bill-payment transactions हटाए जाएंगे। Manual payments और सभी bills सुरक्षित रहेंगे।')) return;
+  if (!(await showConfirm('☢️ NUCLEAR RESET: पुराने automatic bill-payment transactions हटाए जाएंगे। Manual payments और सभी bills सुरक्षित रहेंगे।', { title: 'Nuclear Reset', okText: 'Reset Cleanup करें' }))) return;
   setConnStatus('syncing', 'Nuclear cleaning...');
   try {
     const { data: tx, error: tErr } = await supabaseClient.from('transactions').select('*');
@@ -1658,7 +1768,7 @@ function bindBillCardActions() {
   }));
 
   document.querySelectorAll('.del-bill').forEach(b => b.addEventListener('click', async e => {
-    if (!confirm('बिल हटाएँ? Cloud से भी डिलीट होगा।')) return;
+    if (!(await showConfirm('बिल हटाएँ? Cloud से भी डिलीट होगा।', { title: 'बिल हटाने की पुष्टि', okText: 'बिल हटाएँ' }))) return;
     try {
       const { error } = await supabaseClient.from('bills').delete().eq('id', e.currentTarget.dataset.id);
       if (error) throw error;
@@ -1769,7 +1879,7 @@ function renderContacts() {
   });
 
   document.querySelectorAll('.del-contact').forEach(b => b.addEventListener('click', async e => {
-    if (!confirm('हटाएँ?')) return;
+    if (!(await showConfirm('कस्टमर हटाएँ? यह Cloud से भी डिलीट होगा।', { title: 'कस्टमर हटाने की पुष्टि', okText: 'कस्टमर हटाएँ' }))) return;
     try {
       const cid = e.currentTarget.dataset.id;
       const { error } = await supabaseClient.from('contacts').delete().eq('id', cid);
