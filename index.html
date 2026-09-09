@@ -836,18 +836,117 @@ function mapBill(row) {
   return { id: row.bill_number, dbId: row.id, contactId: row.contact_id, customerName: row.customer_name, customerMobile: row.customer_mobile, bikeModel: row.bike_model, date: row.date, items: row.items || [], totalAmount: row.total_amount, discountPercent: row.discount_percent, finalAmount: row.final_amount, paymentStatus: row.payment_status, paidAmount: row.paid_amount };
 }
 
+function isLegacyAutoBillPaymentTransaction(t) {
+  const note = String(t?.note || '');
+  const legacy = /(?:Bill|बिल)\s+PBS-\d+/i.test(note) &&
+    /(partial payment|full payment|आंशिक भुगतान|पूर्ण भुगतान)/i.test(note);
+  const allocated = /\[BILLPAY\]/i.test(note);
+  return legacy || allocated;
+}
+
+async function reconcileLegacyPaymentsToBills() {
+  // पुराने versions में payment केवल transactions में save होती थी।
+  // ऐसे payments को अब outstanding bills में oldest-first apply करके
+  // bill का paymentStatus/paidAmount भी सही किया जाता है।
+  const paymentTxns = TRANSACTIONS
+    .filter(t => t.type === 'payment' && !isLegacyAutoBillPaymentTransaction(t))
+    .sort((a, b) => {
+      const d = new Date(a.date) - new Date(b.date);
+      return d || String(a.id).localeCompare(String(b.id));
+    });
+
+  if (!paymentTxns.length) return false;
+
+  let changed = false;
+
+  for (const t of paymentTxns) {
+    const amount = Number(t.amount || 0);
+    if (amount <= 0) continue;
+
+    const contactBills = BILLS
+      .filter(b => b.contactId === t.contactId)
+      .filter(b => {
+        const finalAmount = Number(b.finalAmount || 0);
+        const paidAmount = Number(b.paidAmount || 0);
+        return (b.paymentStatus === 'credit' || b.paymentStatus === 'partial') && finalAmount > paidAmount;
+      })
+      .sort((a, b) => {
+        const d = new Date(a.date) - new Date(b.date);
+        return d || String(a.id).localeCompare(String(b.id));
+      });
+
+    let remaining = amount;
+    let allocated = 0;
+
+    for (const bill of contactBills) {
+      if (remaining <= 0) break;
+
+      const finalAmount = Number(bill.finalAmount || 0);
+      const oldPaid = Number(bill.paidAmount || 0);
+      const due = Math.max(0, finalAmount - oldPaid);
+      if (due <= 0) continue;
+
+      const part = Math.min(remaining, due);
+      const newPaid = oldPaid + part;
+      const newStatus = newPaid >= finalAmount ? 'paid' : 'partial';
+
+      const { error } = await supabaseClient.from('bills').update({
+        paid_amount: newPaid,
+        payment_status: newStatus
+      }).eq('id', bill.dbId);
+
+      if (error) throw error;
+
+      bill.paidAmount = newPaid;
+      bill.paymentStatus = newStatus;
+      remaining -= part;
+      allocated += part;
+      changed = true;
+    }
+
+    // केवल तब legacy transaction को BILLPAY mark करें जब उसकी पूरी राशि
+    // bills में allocate हो गई हो। इससे advance/extra payment गलत तरीके से
+    // गायब नहीं होगी।
+    if (allocated > 0 && remaining <= 0.000001) {
+      const oldNote = String(t.note || 'भुगतान प्राप्त');
+      const newNote = `${oldNote} [BILLPAY]`;
+      const { error } = await supabaseClient.from('transactions').update({ note: newNote }).eq('id', t.id);
+      if (error) throw error;
+      t.note = newNote;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
 function getContactBalance(contactId) {
+  // Bills are the source of truth for bill payments. A partial bill's paidAmount
+  // is already included in the bill, so it must not be subtracted again.
   let totalDue = 0;
   BILLS.filter(b => b.contactId === contactId).forEach(b => {
-    if (b.paymentStatus === 'credit') totalDue += Number(b.finalAmount || 0);
-    else if (b.paymentStatus === 'partial') {
-      const unpaid = Number(b.finalAmount || 0) - Number(b.paidAmount || 0);
-      if (unpaid > 0) totalDue += unpaid;
+    const finalAmount = Number(b.finalAmount || 0);
+    const paidAmount = Number(b.paidAmount || 0);
+
+    if (b.paymentStatus === 'credit') {
+      totalDue += finalAmount;
+    } else if (b.paymentStatus === 'partial') {
+      totalDue += Math.max(0, finalAmount - paidAmount);
     }
   });
-  let totalPaid = 0;
-  TRANSACTIONS.filter(t => t.contactId === contactId && t.type === 'payment').forEach(t => totalPaid += Number(t.amount || 0));
-  return totalDue - totalPaid;
+
+  // Only manual payment transactions reduce the bill-derived balance.
+  // Legacy automatic bill-payment transactions are ignored for compatibility.
+  let manualPayments = 0;
+  TRANSACTIONS
+    .filter(t => t.contactId === contactId && t.type === 'payment')
+    .forEach(t => {
+      if (!isLegacyAutoBillPaymentTransaction(t)) {
+        manualPayments += Number(t.amount || 0);
+      }
+    });
+
+  return totalDue - manualPayments;
 }
 
 async function loadAll() {
@@ -862,6 +961,11 @@ async function loadAll() {
     BILLS = (b.data || []).map(mapBill);
     CONTACTS = c.data || [];
     TRANSACTIONS = (t.data || []).map(tx => ({ id: tx.id, contactId: tx.contact_id, type: tx.type, amount: tx.amount, date: tx.date, note: tx.note }));
+
+    // IMPORTANT: पुराने payment records को bills में reconcile करें, ताकि
+    // Bill List/Dashboard/Khata तीनों एक ही payment state दिखाएँ।
+    await reconcileLegacyPaymentsToBills();
+
     setConnStatus('connected', 'Cloud Connected');
     renderAll();
   } catch (e) {
@@ -923,77 +1027,53 @@ async function cleanupData() {
 document.getElementById('cleanupBtn').addEventListener('click', cleanupData);
 
 async function aggressiveCleanup() {
-  if (!confirm('🔥 Aggressive Cleanup? यह हर ग्राहक का बैलेंस पुनः जांचेगा।')) return;
+  if (!confirm('🔥 Aggressive Cleanup? पुराने automatic bill-payment transactions हटाए जाएंगे, manual payments सुरक्षित रहेंगे।')) return;
   setConnStatus('syncing', 'Aggressive cleaning...');
   try {
-    const { data: bills } = await supabaseClient.from('bills').select('*');
-    const { data: tx } = await supabaseClient.from('transactions').select('*');
-    const { data: contacts } = await supabaseClient.from('contacts').select('*');
+    const { data: tx, error: tErr } = await supabaseClient.from('transactions').select('*');
+    if (tErr) throw tErr;
 
     let deletedCount = 0;
-    for (const contact of contacts) {
-      const myBills = bills.filter(b => b.contact_id === contact.id);
-      const myTx = tx.filter(t => t.contact_id === contact.id);
-
-      let expectedDue = 0;
-      myBills.forEach(b => {
-        if (b.payment_status === 'credit') expectedDue += Number(b.final_amount || 0);
-        else if (b.payment_status === 'partial') {
-          const unpaid = Number(b.final_amount || 0) - Number(b.paid_amount || 0);
-          if (unpaid > 0) expectedDue += unpaid;
-        }
-      });
-
-      const totalPaid = myTx.filter(t => t.type === 'payment').reduce((s, t) => s + Number(t.amount || 0), 0);
-      const currentBalance = expectedDue - totalPaid;
-
-      if (currentBalance < -100 && expectedDue > 0) {
-        const autoTx = myTx.filter(t => t.note && (t.note.includes('आंशिक भुगतान') || t.note.includes('पूर्ण भुगतान')));
-        for (const at of autoTx) {
-          const { error } = await supabaseClient.from('transactions').delete().eq('id', at.id);
-          if (!error) deletedCount++;
-        }
-      }
+    for (const t of (tx || [])) {
+      if (!isLegacyAutoBillPaymentTransaction(t)) continue;
+      const { error } = await supabaseClient.from('transactions').delete().eq('id', t.id);
+      if (error) throw error;
+      deletedCount++;
     }
+
     await loadAll();
     renderAll();
     setConnStatus('connected', 'Cloud Connected');
-    showToast(`🔥 Done! Deleted: ${deletedCount} extra txns`, 'success', 4000);
+    showToast(`🔥 Done! Deleted: ${deletedCount} old automatic txns`, 'success', 4000);
   } catch (e) {
     showToast('❌ ' + e.message, 'error');
+    setConnStatus('connected', 'Cleanup failed');
   }
 }
 window.aggressiveCleanup = aggressiveCleanup;
 
 async function nuclearCleanup() {
-  if (!confirm('☢️ NUCLEAR RESET: सभी लेन-देन डिलीट कर बिलों से पुनः बनाए जाएंगे।')) return;
+  if (!confirm('☢️ NUCLEAR RESET: पुराने automatic bill-payment transactions हटाए जाएंगे। Manual payments और सभी bills सुरक्षित रहेंगे।')) return;
   setConnStatus('syncing', 'Nuclear cleaning...');
   try {
-    const { error: delErr } = await supabaseClient.from('transactions').delete().neq('id', 'never');
-    if (delErr) throw delErr;
+    const { data: tx, error: tErr } = await supabaseClient.from('transactions').select('*');
+    if (tErr) throw tErr;
 
-    const { data: bills, error: bErr } = await supabaseClient.from('bills').select('*');
-    if (bErr) throw bErr;
-
-    const newTx = [];
-    bills.forEach(b => {
-      if (b.payment_status === 'paid') {
-        newTx.push({ id: 'tx-auto-' + b.id, contact_id: b.contact_id, type: 'payment', amount: Number(b.final_amount || 0), date: b.date, note: `Bill ${b.bill_number} (full payment)` });
-      } else if (b.payment_status === 'partial' && Number(b.paid_amount || 0) > 0) {
-        newTx.push({ id: 'tx-auto-' + b.id, contact_id: b.contact_id, type: 'payment', amount: Number(b.paid_amount || 0), date: b.date, note: `Bill ${b.bill_number} (partial payment)` });
-      }
-    });
-
-    if (newTx.length) {
-      await supabaseClient.from('transactions').insert(newTx);
+    let deletedCount = 0;
+    for (const t of (tx || [])) {
+      if (!isLegacyAutoBillPaymentTransaction(t)) continue;
+      const { error } = await supabaseClient.from('transactions').delete().eq('id', t.id);
+      if (error) throw error;
+      deletedCount++;
     }
 
     await loadAll();
     renderAll();
     setConnStatus('connected', 'Cloud Connected');
-    showToast(`☢️ Complete! Rebuilt ${newTx.length} transactions.`, 'success', 5000);
+    showToast(`☢️ Complete! Removed ${deletedCount} old automatic transactions.`, 'success', 5000);
   } catch (e) {
     showToast('❌ ' + e.message, 'error', 5000);
+    setConnStatus('connected', 'Cleanup failed');
   }
 }
 document.getElementById('nuclearBtn').addEventListener('click', nuclearCleanup);
@@ -1110,17 +1190,6 @@ document.getElementById('saveBillBtn').addEventListener('click', async () => {
     const { data: saved, error } = await supabaseClient.from('bills').insert(billPayload).select().single();
     if (error) throw error;
     BILLS.unshift(mapBill(saved));
-
-    if (status === 'partial' && paid > 0) {
-      const partialTx = { id: 't' + Date.now(), contact_id: contact.id, type: 'payment', amount: paid, date: document.getElementById('date').value, note: `बिल ${currentBillNumber} (आंशिक भुगतान)` };
-      await supabaseClient.from('transactions').insert(partialTx);
-      TRANSACTIONS.push({ ...partialTx, contactId: contact.id });
-    }
-    if (status === 'paid') {
-      const paidTx = { id: 't' + Date.now(), contact_id: contact.id, type: 'payment', amount: final, date: document.getElementById('date').value, note: `बिल ${currentBillNumber} (पूर्ण भुगतान)` };
-      await supabaseClient.from('transactions').insert(paidTx);
-      TRANSACTIONS.push({ ...paidTx, contactId: contact.id });
-    }
 
     clearDraft();
     document.getElementById('customerName').value = '';
@@ -1691,10 +1760,13 @@ function renderContacts() {
     </div>`;
   }).join('') : '<p class="text-gray-500 text-sm text-center py-6 col-span-full">कोई कस्टमर नहीं</p>';
 
-  document.querySelectorAll('.edit-contact').forEach(b => b.addEventListener('click', e => {
-    const c = CONTACTS.find(x => x.currentTarget.dataset.id || x.dataset.id);
-    if (c) openContactModal(c);
-  }));
+  document.querySelectorAll('.edit-contact').forEach(b => {
+    b.addEventListener('click', e => {
+      const id = e.currentTarget.dataset.id;
+      const c = CONTACTS.find(x => x.id === id);
+      if (c) openContactModal(c);
+    });
+  });
 
   document.querySelectorAll('.del-contact').forEach(b => b.addEventListener('click', async e => {
     if (!confirm('हटाएँ?')) return;
@@ -1723,25 +1795,58 @@ function renderKhata() {
     box.innerHTML = '<div class="text-center py-8"><p class="text-gray-500 font-poppins text-sm">कोई ग्राहक नहीं</p></div>';
     return;
   }
+
   box.innerHTML = CONTACTS.map(c => {
     const bal = getContactBalance(c.id);
     const events = [];
+
+    // Every bill is a debit. The paid amount stored on the bill is then shown
+    // as its payment credit, so the ledger remains internally consistent.
     BILLS.filter(b => b.contactId === c.id).forEach(b => {
-      if (b.paymentStatus === 'credit') events.push({ date: b.date, desc: `बिल ${b.id} (उधार)`, type: 'debit', amount: b.finalAmount });
-      else if (b.paymentStatus === 'partial') {
-        const d = b.finalAmount - b.paidAmount;
-        if (d > 0) events.push({ date: b.date, desc: `बिल ${b.id} (आंशिक बकाया)`, type: 'debit', amount: d });
+      const finalAmount = Number(b.finalAmount || 0);
+      const paidAmount = Number(b.paidAmount || 0);
+
+      events.push({
+        date: b.date,
+        order: 1,
+        desc: `बिल ${b.id} (${b.paymentStatus === 'credit' ? 'उधार' : b.paymentStatus === 'partial' ? 'आंशिक' : 'पूर्ण भुगतान'})`,
+        type: 'debit',
+        amount: finalAmount
+      });
+
+      if ((b.paymentStatus === 'paid' || b.paymentStatus === 'partial') && paidAmount > 0) {
+        events.push({
+          date: b.date,
+          order: 2,
+          desc: b.paymentStatus === 'paid' ? `बिल ${b.id} (पूर्ण भुगतान)` : `बिल ${b.id} (आंशिक भुगतान)`,
+          type: 'credit',
+          amount: paidAmount
+        });
       }
     });
-    TRANSACTIONS.filter(t => t.contactId === c.id).forEach(t => {
-      events.push({ date: t.date, desc: t.note || 'भुगतान प्राप्त', type: 'credit', amount: t.amount });
+
+    // Manual payments are additional credits. Legacy automatic bill-payment
+    // transactions are skipped because the bill already contains paidAmount.
+    TRANSACTIONS.filter(t => t.contactId === c.id && t.type === 'payment').forEach(t => {
+      if (isLegacyAutoBillPaymentTransaction(t)) return;
+      events.push({
+        date: t.date,
+        order: 3,
+        desc: t.note || 'भुगतान प्राप्त',
+        type: 'credit',
+        amount: Number(t.amount || 0)
+      });
     });
-    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    events.sort((a, b) => {
+      const dateDiff = new Date(a.date) - new Date(b.date);
+      return dateDiff || ((a.order || 0) - (b.order || 0));
+    });
 
     let running = 0, rows = '';
     events.forEach(ev => {
-      if (ev.type === 'debit') running += ev.amount;
-      else running -= ev.amount;
+      if (ev.type === 'debit') running += Number(ev.amount || 0);
+      else running -= Number(ev.amount || 0);
       const colClr = ev.type === 'debit' ? 'text-rose-600' : 'text-emerald-600';
       const sign = ev.type === 'debit' ? '+' : '−';
       rows += `<tr class="border-b border-gray-100 dark:border-slate-700"><td class="py-1.5 px-2 text-xs">${formatDate(ev.date)}</td><td class="py-1.5 px-2 text-xs">${escapeHTML(ev.desc)}</td><td class="py-1.5 px-2 text-xs text-right font-bold ${colClr} font-poppins">${sign}${inr(ev.amount)}</td><td class="py-1.5 px-2 text-xs text-right font-poppins font-semibold dark:text-gray-200">${inr(running)}</td></tr>`;
@@ -1771,7 +1876,6 @@ function renderKhata() {
     </div>`;
   }).join('');
 }
-
 function openPaymentModal(cid = null) {
   const sel = document.getElementById('paymentCustomer');
   sel.innerHTML = CONTACTS.map(c => `<option value="${c.id}" ${cid === c.id ? 'selected' : ''}>${escapeHTML(c.name)}</option>`).join('');
@@ -1800,22 +1904,76 @@ document.getElementById('savePaymentBtn').addEventListener('click', async () => 
   if (amt <= 0) { showToast('राशि डालें!', 'error'); return; }
   if (!id) { showToast('ग्राहक चुनें!', 'error'); return; }
 
-  const t = { id: 't' + Date.now(), contact_id: id, type: 'payment', amount: amt, date: todayISO(), note };
+  const currentDue = Math.max(0, getContactBalance(id));
+  if (amt > currentDue) {
+    showToast('❌ भुगतान बकाया राशि से अधिक नहीं हो सकता। वर्तमान बकाया: ' + inr(currentDue), 'warning', 4000);
+    return;
+  }
+
   const btn = document.getElementById('savePaymentBtn');
   btn.innerHTML = '<span class="loading-spinner"></span>';
   btn.disabled = true;
 
   try {
-    const { error } = await supabaseClient.from('transactions').insert(t);
-    if (error) throw error;
+    // IMPORTANT: A payment entered here must also update the bill(s).
+    // Otherwise the Khata balance becomes 0 while the bill card still shows
+    // the old credit/partial due amount. Allocate the payment oldest-first.
+    let remaining = amt;
+    const outstandingBills = BILLS
+      .filter(b => b.contactId === id)
+      .filter(b => {
+        const finalAmount = Number(b.finalAmount || 0);
+        const paidAmount = Number(b.paidAmount || 0);
+        return finalAmount > paidAmount && (b.paymentStatus === 'credit' || b.paymentStatus === 'partial');
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    for (const b of outstandingBills) {
+      if (remaining <= 0) break;
+      const finalAmount = Number(b.finalAmount || 0);
+      const oldPaid = Number(b.paidAmount || 0);
+      const due = Math.max(0, finalAmount - oldPaid);
+      if (due <= 0) continue;
+
+      const allocated = Math.min(remaining, due);
+      const newPaid = oldPaid + allocated;
+      const newStatus = newPaid >= finalAmount ? 'paid' : 'partial';
+
+      const { error } = await supabaseClient.from('bills').update({
+        paid_amount: newPaid,
+        payment_status: newStatus
+      }).eq('id', b.dbId);
+      if (error) throw error;
+
+      b.paidAmount = newPaid;
+      b.paymentStatus = newStatus;
+      remaining -= allocated;
+    }
+
+    // Keep a transaction as an audit/history record, but mark it as an
+    // allocated bill payment so balance calculation does not subtract it a
+    // second time.
+    const paymentNote = `बिल भुगतान [BILLPAY]${note ? ' - ' + note : ''}`;
+    const t = {
+      id: 't' + Date.now(),
+      contact_id: id,
+      type: 'payment',
+      amount: amt,
+      date: todayISO(),
+      note: paymentNote
+    };
+    const { error: txError } = await supabaseClient.from('transactions').insert(t);
+    if (txError) throw txError;
     TRANSACTIONS.push({ ...t, contactId: id });
+
     document.getElementById('closePaymentModal').click();
     document.getElementById('paymentAmount').value = '';
     document.getElementById('paymentNote').value = '';
     renderAll();
-    showToast('✅ पेमेंट सेव हो गई!');
+    showToast('✅ पेमेंट सेव हो गई और बिल का बकाया अपडेट हो गया!');
   } catch (e) {
     showToast('❌ ' + e.message, 'error');
+    await loadAll();
   } finally {
     btn.innerHTML = 'सेव';
     btn.disabled = false;
